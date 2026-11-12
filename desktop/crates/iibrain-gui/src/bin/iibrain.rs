@@ -25,7 +25,9 @@ fn main() -> eframe::Result {
     let device_dir = directories::ProjectDirs::from("io.github", "paxel", "iibrain")
         .map(|dirs| dirs.data_dir().to_path_buf())
         .unwrap_or_else(|| std::path::PathBuf::from(".iibrain-device"));
-    let app = App::new(&device_dir, locale);
+    let mut app = App::new(&device_dir, locale);
+    // What another Device or tool added while this one was closed.
+    app.read_waiting_texts();
     let viewport = egui::ViewportBuilder::default()
         .with_title(app.t().app_title())
         // The app id a launcher entry is named after.

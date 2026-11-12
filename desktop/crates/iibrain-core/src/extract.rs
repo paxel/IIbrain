@@ -18,6 +18,9 @@ use crate::error::Result;
 pub enum Kind {
     /// A photo, a screenshot or a scanned page.
     Picture,
+    /// A PDF: its text layer, and where a page has none, the text on
+    /// the page's images.
+    Pdf,
     /// Plain text or Markdown; its text is its content.
     Text,
     /// Anything else: kept, and found by its name and its Note only.
@@ -31,6 +34,7 @@ pub fn kind_of(name: &str) -> Kind {
         .unwrap_or_default();
     match ending.as_str() {
         "jpg" | "jpeg" | "png" | "webp" | "gif" | "bmp" => Kind::Picture,
+        "pdf" => Kind::Pdf,
         "txt" | "md" | "markdown" | "text" | "csv" => Kind::Text,
         _ => Kind::Other,
     }
@@ -49,6 +53,7 @@ impl Engines {
         let name = path.file_name()?.to_string_lossy().to_string();
         match kind_of(&name) {
             Kind::Picture => Some(self.read_picture(path).unwrap_or_default()),
+            Kind::Pdf => Some(self.read_pdf(path).unwrap_or_default()),
             Kind::Text => Some(
                 std::fs::read(path)
                     .map(|bytes| String::from_utf8_lossy(&bytes).to_string())
@@ -63,9 +68,37 @@ impl Engines {
         self.read_picture_bytes(&std::fs::read(path).ok()?)
     }
 
+    /// The text of the PDF in the file at `path`, page after page: a
+    /// page's text layer, or for a page with next to none, as a scanned
+    /// page has, the text on its images. A page image the app cannot
+    /// decode (JBIG2, CCITT fax, JPEG 2000) is left out.
+    fn read_pdf(&mut self, path: &Path) -> Option<String> {
+        let document = lopdf::Document::load(path).ok()?;
+        let mut pages = Vec::new();
+        for (number, page) in document.get_pages() {
+            let layer = document.extract_text(&[number]).unwrap_or_default();
+            let layer = join_lines(layer.lines().map(String::from));
+            if layer.chars().filter(|c| c.is_alphanumeric()).count() >= SCANNED_BELOW {
+                pages.push(layer);
+                continue;
+            }
+            let mut read = vec![layer];
+            for picture in document.get_page_images(page).unwrap_or_default() {
+                if let Some(pixels) = page_picture(&document, &picture) {
+                    read.push(self.read_pixels(pixels).unwrap_or_default());
+                }
+            }
+            pages.push(join_lines(read));
+        }
+        Some(join_lines(pages))
+    }
+
     /// The text on a picture, as lines laid out as on the picture.
     pub fn read_picture_bytes(&mut self, bytes: &[u8]) -> Option<String> {
-        let pixels = image::load_from_memory(bytes).ok()?.into_rgb8();
+        self.read_pixels(image::load_from_memory(bytes).ok()?.into_rgb8())
+    }
+
+    fn read_pixels(&mut self, pixels: image::RgbImage) -> Option<String> {
         if self.pictures.is_none() {
             self.pictures = picture_engine();
         }
@@ -81,6 +114,40 @@ impl Engines {
                 join_lines(lines.into_iter().map(|line| line.text))
             }
         })
+    }
+}
+
+/// A page with fewer letters and digits in its text layer than this is
+/// taken for a scanned one.
+const SCANNED_BELOW: usize = 16;
+
+/// A picture on a PDF page as pixels: a JPEG as it is, or 8-bit samples
+/// in grey or RGB.
+fn page_picture(
+    document: &lopdf::Document,
+    picture: &lopdf::xobject::PdfImage,
+) -> Option<image::RgbImage> {
+    let filters = picture.filters.clone().unwrap_or_default();
+    if filters.iter().any(|f| f == "DCTDecode") {
+        return Some(image::load_from_memory(picture.content).ok()?.into_rgb8());
+    }
+    if filters.iter().any(|f| f != "FlateDecode") || picture.bits_per_component != Some(8) {
+        return None;
+    }
+    let samples = document
+        .get_object(picture.id)
+        .ok()?
+        .as_stream()
+        .ok()?
+        .decompressed_content()
+        .ok()?;
+    let width = u32::try_from(picture.width).ok()?;
+    let height = u32::try_from(picture.height).ok()?;
+    match picture.color_space.as_deref() {
+        Some("DeviceRGB") => image::RgbImage::from_raw(width, height, samples),
+        Some("DeviceGray") => image::GrayImage::from_raw(width, height, samples)
+            .map(|grey| image::DynamicImage::ImageLuma8(grey).into_rgb8()),
+        _ => None,
     }
 }
 

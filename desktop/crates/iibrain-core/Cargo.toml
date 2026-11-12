@@ -28,10 +28,11 @@ rusto-rs = { version = "0.3.2", default-features = false }
 rten = { version = "0.27.0", default-features = false, features = ["rten_format"] }
 rten-tensor = "0.27.0"
 ndarray = { version = "0.16.1", default-features = false }
+# PDFs: their text layer, and the page images of scanned ones.
+lopdf = { version = "0.47", default-features = false }
 
 [dev-dependencies]
 tempfile = "3.10"
-# A blank picture, made for a test.
 
 [lints]
 workspace = true
