@@ -92,5 +92,9 @@
   "nothingFits": "Nichts in deinem Brain passt zu dieser Frage. Es wurde kein Modell gefragt.",
   "answerBy": "Antwort von {model}, allein aus den Quellen unten:",
   "sources": "Quellen",
-  "privateLeftOut": "{count, plural, =1{1 private Notiz wurde weggelassen, weil dein Modell ein Cloud-Modell ist. Die Antwort kann unvollständig sein.} other{{count} private Notizen wurden weggelassen, weil dein Modell ein Cloud-Modell ist. Die Antwort kann unvollständig sein.}}"
+  "privateLeftOut": "{count, plural, =1{1 private Notiz wurde weggelassen, weil dein Modell ein Cloud-Modell ist. Die Antwort kann unvollständig sein.} other{{count} private Notizen wurden weggelassen, weil dein Modell ein Cloud-Modell ist. Die Antwort kann unvollständig sein.}}",
+  "keepAnswer": "Als Notiz behalten",
+  "writtenByModel": "Vom Modell {model} geschrieben, aus diesen Quellen:",
+  "answerSuffix": "{name} · Antwort",
+  "sourceGone": "{name} (nicht mehr vorhanden)"
 }

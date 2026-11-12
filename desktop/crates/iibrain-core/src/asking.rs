@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::brain::Capture;
 use crate::core::Core;
 use crate::error::{Error, Result};
 use crate::filing::whole_text;
@@ -193,5 +194,31 @@ impl Core {
             Found::Nothing { .. } => Ok(None),
             Found::Sources(asking) => asking.send().map(Some),
         }
+    }
+
+    /// Keeps an Answer as a Saved Answer: an Unfiled Note titled with
+    /// the Question, marked as written by the Model, linking its
+    /// Sources. With a Private Source it is Private (ADR 0004).
+    pub fn save_answer(&mut self, answer: &Answer) -> Result<String> {
+        let mut text = answer.text.trim().to_string();
+        if !answer.sources.is_empty() {
+            text.push_str("\n\nSources:\n");
+            for source in &answer.sources {
+                text.push_str(&format!("- {} ({})\n", source.title, source.id));
+            }
+        }
+        let capture = Capture {
+            text,
+            via: "answer".to_string(),
+            private: answer.private,
+            ..Capture::default()
+        };
+        let id = self.brain.capture(&capture, chrono::Local::now())?;
+        let title: String = answer.question.chars().take(80).collect();
+        let sources: Vec<String> = answer.sources.iter().map(|s| s.id.clone()).collect();
+        self.brain
+            .set_answer(&id, title.trim(), &answer.model, &sources)?;
+        self.refresh()?;
+        Ok(id)
     }
 }

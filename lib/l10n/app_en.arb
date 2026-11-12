@@ -441,5 +441,36 @@
         "type": "int"
       }
     }
+  },
+  "keepAnswer": "Keep as a Note",
+  "@keepAnswer": {
+    "description": "Button under an Answer that makes it a Saved Answer."
+  },
+  "writtenByModel": "Written by the Model {model}, from these Sources:",
+  "@writtenByModel": {
+    "description": "On a Saved Answer, over the links to its Sources.",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "answerSuffix": "{name} · Answer",
+  "@answerSuffix": {
+    "description": "A Saved Answer's title in a list.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sourceGone": "{name} (no longer there)",
+  "@sourceGone": {
+    "description": "A Source of a Saved Answer whose Note was moved or deleted.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

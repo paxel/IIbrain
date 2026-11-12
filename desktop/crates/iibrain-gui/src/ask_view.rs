@@ -106,6 +106,14 @@ impl App {
                     ui.weak(self.t.answer_by(&answer.model));
                     ui.add(egui::Label::new(answer.text.as_str()).selectable(true));
                     self.show_left_out(ui, answer.left_out);
+                    if ui.button(self.t.keep_answer()).clicked()
+                        && let Some(id) = self.act(|core| core.save_answer(&answer))
+                    {
+                        self.folder = iibrain_core::INBOX.to_string();
+                        self.open = Some(id);
+                        self.ask_view = false;
+                        self.search.clear();
+                    }
                     ui.separator();
                     ui.strong(self.t.sources());
                     for source in &answer.sources {

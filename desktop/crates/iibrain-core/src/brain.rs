@@ -466,10 +466,11 @@ impl Brain {
         self.write(id, &parsed)
     }
 
-    /// Marks a Note as a Saved Answer: written by `model`, from
-    /// `sources`.
-    pub fn set_answer(&self, id: &str, model: &str, sources: &[String]) -> Result<()> {
+    /// Marks a Note as a Saved Answer: titled `title`, written by
+    /// `model`, from `sources`.
+    pub fn set_answer(&self, id: &str, title: &str, model: &str, sources: &[String]) -> Result<()> {
         let mut parsed = self.parse(id)?;
+        parsed.front.insert("title".into(), title.into());
         parsed.front.insert("model".into(), model.into());
         parsed.front.insert(
             "sources".into(),

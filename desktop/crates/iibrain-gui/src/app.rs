@@ -524,10 +524,16 @@ impl App {
                         .core
                         .as_ref()
                         .is_some_and(|core| core.is_private(&note));
-                    let title = if private {
-                        self.t.private_suffix(&list_title(&note))
+                    let title = list_title(&note);
+                    let title = if note.model.is_some() {
+                        self.t.answer_suffix(&title)
                     } else {
-                        list_title(&note)
+                        title
+                    };
+                    let title = if private {
+                        self.t.private_suffix(&title)
+                    } else {
+                        title
                     };
                     let clicked = ui.add(egui::Button::selectable(chosen, title)).clicked();
                     if clicked {
@@ -624,6 +630,24 @@ impl App {
                 }
                 ui.separator();
                 ui.add(egui::Label::new(note.text.as_str()).selectable(true));
+                if let Some(model) = &note.model {
+                    ui.separator();
+                    ui.weak(self.t.written_by_model(model));
+                    for source in &note.sources {
+                        let known = self.core.as_ref().and_then(|core| core.note(source).ok());
+                        match known {
+                            Some(known) => {
+                                if ui.link(known.title.as_str()).clicked() {
+                                    self.folder = known.folder;
+                                    self.open = Some(known.id);
+                                }
+                            }
+                            None => {
+                                ui.weak(self.t.source_gone(source));
+                            }
+                        }
+                    }
+                }
                 if let Some(link) = &note.link {
                     ui.separator();
                     ui.hyperlink(link);
