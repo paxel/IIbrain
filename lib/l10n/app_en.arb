@@ -235,5 +235,21 @@
   "readingText": "Its text is being read…",
   "@readingText": {
     "description": "Under an Attachment whose text the app has not read yet."
+  },
+  "pageText": "Text of the page",
+  "@pageText": {
+    "description": "Heading over the Extracted Text of the page behind a Note's link."
+  },
+  "pageTextMissing": "The text of the page is missing: it could not be fetched.",
+  "@pageTextMissing": {
+    "description": "Under a link whose page the app could not fetch."
+  },
+  "pageFetching": "The page is being fetched…",
+  "@pageFetching": {
+    "description": "Under a link whose page the app has not fetched yet."
+  },
+  "linkHint": "A link on its own is kept together with the text of its page.",
+  "@linkHint": {
+    "description": "Hint in the capture dialog."
   }
 }

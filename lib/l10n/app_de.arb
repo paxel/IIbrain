@@ -48,5 +48,9 @@
   "clearSearch": "Leeren",
   "addFiles": "Dateien hinzufügen…",
   "noTextFound": "Darin wurde kein Text gefunden.",
-  "readingText": "Der Text wird gelesen…"
+  "readingText": "Der Text wird gelesen…",
+  "pageText": "Text der Seite",
+  "pageTextMissing": "Der Text der Seite fehlt: Sie ließ sich nicht abrufen.",
+  "pageFetching": "Die Seite wird abgerufen…",
+  "linkHint": "Ein Link allein wird zusammen mit dem Text seiner Seite aufbewahrt."
 }

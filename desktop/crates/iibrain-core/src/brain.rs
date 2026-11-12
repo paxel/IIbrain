@@ -288,6 +288,21 @@ impl Brain {
         Ok(waiting)
     }
 
+    /// The Notes with a link whose page the app has not fetched yet,
+    /// each as its id and its link.
+    pub fn waiting_for_page(&self) -> Result<Vec<(String, String)>> {
+        let mut waiting = Vec::new();
+        for id in self.note_ids()? {
+            let Some(link) = text_of(&self.parse(&id)?.front, "link") else {
+                continue;
+            };
+            if self.read_files(&id)?.1.is_none() {
+                waiting.push((id, link));
+            }
+        }
+        Ok(waiting)
+    }
+
     /// Where an Attachment lies.
     pub fn attachment_path(&self, id: &str, name: &str) -> Result<PathBuf> {
         if name.contains(['/', '\\']) || name.starts_with('.') {
@@ -388,13 +403,13 @@ impl Brain {
         if capture.private {
             front.insert("private".into(), Value::Bool(true));
         }
-        self.write(
-            &id,
-            &Parsed {
-                front,
-                body: capture.text.clone(),
-            },
-        )?;
+        // A link without words of the person's is the Note's text
+        // itself, so that every tool shows something.
+        let body = match &capture.link {
+            Some(link) if capture.text.trim().is_empty() => link.clone(),
+            _ => capture.text.clone(),
+        };
+        self.write(&id, &Parsed { front, body })?;
         for file in &capture.files {
             self.attach(&id, file)?;
         }

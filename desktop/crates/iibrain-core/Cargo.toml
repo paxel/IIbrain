@@ -28,6 +28,11 @@ rusto-rs = { version = "0.3.2", default-features = false }
 rten = { version = "0.27.0", default-features = false, features = ["rten_format"] }
 rten-tensor = "0.27.0"
 ndarray = { version = "0.16.1", default-features = false }
+# The page behind a link, fetched by the Device itself, and later the
+# Model's endpoint. TLS by rustls with its bundled roots, on the phone too.
+ureq = { version = "3", features = ["json"] }
+# The fetched page, parsed to take its readable text.
+scraper = "0.29"
 # PDFs: their text layer, and the page images of scanned ones.
 lopdf = { version = "0.47", default-features = false }
 

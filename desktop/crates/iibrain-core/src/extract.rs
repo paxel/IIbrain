@@ -151,16 +151,30 @@ fn page_picture(
     }
 }
 
-/// Reads the Extracted Text of one Attachment that still waits for it
-/// and keeps it in the Brain's folder; says whether there was one.
+/// Reads the Extracted Text of one Attachment that still waits for it,
+/// or else fetches one page that does, and keeps the text in the
+/// Brain's folder; says whether there was one.
 /// It needs nothing but the folder, so it can run beside the app.
 pub fn extract_one(brain: &Brain, engines: &mut Engines) -> Result<bool> {
     let Some((id, name)) = brain.waiting_for_text()?.into_iter().next() else {
-        return Ok(false);
+        return fetch_one(brain);
     };
     let path = brain.attachment_path(&id, &name)?;
     let text = engines.read(&path).unwrap_or_default();
     brain.set_extracted(&id, &name, &text)?;
+    Ok(true)
+}
+
+/// Fetches the page of one Note whose link still waits for it and
+/// keeps its readable text; says whether there was one. A page that
+/// cannot be fetched is kept as empty, which says that its text is
+/// missing.
+fn fetch_one(brain: &Brain) -> Result<bool> {
+    let Some((id, link)) = brain.waiting_for_page()?.into_iter().next() else {
+        return Ok(false);
+    };
+    let text = crate::web::page_text(&link).unwrap_or_default();
+    brain.set_page_text(&id, &text)?;
     Ok(true)
 }
 

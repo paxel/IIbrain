@@ -478,6 +478,22 @@ impl App {
                 }
                 ui.separator();
                 ui.add(egui::Label::new(note.text.as_str()).selectable(true));
+                if let Some(link) = &note.link {
+                    ui.separator();
+                    ui.hyperlink(link);
+                    match note.page_text.as_deref() {
+                        Some("") => {
+                            ui.weak(self.t.page_text_missing());
+                        }
+                        Some(text) => {
+                            ui.weak(self.t.page_text());
+                            ui.add(egui::Label::new(text).selectable(true));
+                        }
+                        None => {
+                            ui.weak(self.t.page_fetching());
+                        }
+                    }
+                }
                 if !note.attachments.is_empty() {
                     ui.separator();
                     ui.strong(self.t.attachments());
@@ -553,13 +569,24 @@ impl App {
                     let name = file.file_name().unwrap_or(file.as_os_str());
                     ui.label(name.to_string_lossy());
                 }
+                ui.weak(self.t.link_hint());
                 ui.weak(self.t.phone_only());
                 let something = !text.trim().is_empty() || !files.is_empty();
                 match self.confirm_row(ui, self.t.save(), something) {
                     Some(true) => {
+                        // A link on its own is a link Capture.
+                        let link = iibrain_core::web::is_link(text) && files.is_empty();
                         let capture = Capture {
-                            text: text.clone(),
-                            via: if files.is_empty() { "typed" } else { "file" }.to_string(),
+                            text: if link { String::new() } else { text.clone() },
+                            via: if link {
+                                "link"
+                            } else if files.is_empty() {
+                                "typed"
+                            } else {
+                                "file"
+                            }
+                            .to_string(),
+                            link: link.then(|| text.trim().to_string()),
                             files: files.clone(),
                             ..Capture::default()
                         };
