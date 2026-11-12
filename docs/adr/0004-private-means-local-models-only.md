@@ -17,6 +17,13 @@ The one limit the requirements state outright is that not everything may go to a
 - The mark governs Models only. It hides nothing on the Device and nothing from whoever hosts the folder (ADR 0001).
 - A person with only a Cloud Model gets no Proposals for Unfiled Notes until they change the setting or file by hand.
 
-## Still open
+## Where the marks are kept (#5)
 
-Where the marks are kept is not decided: a Folder's Private mark, the setting for Unfiled Notes, and whether the privacy of a Capture travels with its file. If any of them belongs to a Device alone, a Capture that is Private on the phone can reach a Cloud Model from the desktop's Inbox. To be decided before the mark is built.
+All of them lie in the Brain's folder, so that a mark set on one Device holds on every other:
+
+- A Note's mark is `private: true` in its frontmatter.
+- A Folder's mark is an empty file `.iibrain-private` in that Folder; it moves with the Folder when another tool renames it.
+- The setting for Unfiled Notes is `unfiled_private` in `.iibrain/brain.yaml` at the root of the Brain; a missing file or key means Private.
+- A Capture made while Unfiled Notes are open is written without a mark; one the person marked carries `private: true` from the start. So an Unfiled Note is Private when the setting says so or its own mark does.
+
+Considered: keeping the marks as settings of a Device (rejected: a Capture that is Private on the phone could reach a Cloud Model from the desktop's Inbox). The cost is that whoever can write into the folder can lift a mark; that party can read every Note anyway (ADR 0001).

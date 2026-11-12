@@ -7,4 +7,9 @@ Each of the two has its own switch for Cloud Models, "local only" at the start (
 ## Consequences
 
 - A Question about an appointment or a person can only be answered on the phone.
-- Still to be checked: whether a Live Lookup needs the Model to call a tool, and what happens with an endpoint that offers none.
+
+## Without tool calls (#7)
+
+A Live Lookup never depends on the Model calling a tool, so it works with every endpoint. The ask screen of the phone has two switches, calendar and contacts, off at the start of every Question. With calendar on, the phone reads the events of the next fourteen days; with contacts on, it reads the contacts whose names share a word with the Question. What it read goes to the Model beside the Sources, marked as calendar or contacts, and through the same gate (ADR 0004).
+
+Considered: offering the Model tools to query calendar and contacts (rejected: many OpenAI-compatible endpoints offer none, and the Model would decide what of other people's data it reads).

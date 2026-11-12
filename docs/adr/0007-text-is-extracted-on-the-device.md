@@ -14,5 +14,5 @@ For a link the app fetches the page itself and stops there: no archive services 
 ## Consequences
 
 - The engines add native code to both apps.
-- Not decided: whether the Whisper model is bundled or downloaded on request, as Old Brain Fix does.
-- Still to be checked: which Android versions Print Capture and Whisper need. The app otherwise runs on whatever Flutter supports by default.
+- The Whisper model is not bundled (#8). The person picks a model file, or lets the app download one from IIbrain's own releases, checked against a checksum pinned in the app. Bundling was rejected for its size in every install, also for people who never record.
+- Android versions (#3): a print service exists since Android 4.4 (API level 19, `android.printservice.PrintService`), and Old Brain Fix builds the same whisper.cpp for Flutter's default floor. Neither needs a newer Android than the app's floor.
