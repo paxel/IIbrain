@@ -2,7 +2,7 @@
 
 mod common;
 
-use common::{Queryable, TestResult, World, app, click, fill, harness, model, model_server, shows};
+use common::{TestResult, World, app, click, fill, harness, model, model_server, shows};
 
 #[test]
 fn an_answer_is_kept_and_shows_its_mark_and_its_sources() -> TestResult {
@@ -35,10 +35,7 @@ fn an_answer_is_kept_and_shows_its_mark_and_its_sources() -> TestResult {
         "in the Inbox's list"
     );
 
-    harness
-        .get_by_role_and_label(egui::accesskit::Role::Link, "Plumber")
-        .click();
-    harness.run();
+    click(&mut harness, "Plumber");
     assert_eq!(harness.state().open_note(), Some("Home/Plumber.md"));
     Ok(())
 }

@@ -43,7 +43,10 @@ fn a_folder_lists_its_notes_and_a_note_opens_with_its_attachments() -> TestResul
     world.write("Money/tax.files/scan.jpg.extracted.txt", "total 120 EUR");
     let mut harness = harness(app(&world, "en"));
 
-    assert!(shows(&harness, "No Notes here."), "the Inbox is empty");
+    assert!(
+        shows(&harness, "Nothing waits Unfiled."),
+        "the Inbox is empty"
+    );
     click(&mut harness, "Money (1)");
     click(&mut harness, "Tax return");
     assert!(shows(&harness, "Before May."));
@@ -74,6 +77,6 @@ fn the_screens_speak_german() -> TestResult {
     assert!(shows(&harness, "Wo liegt dein Brain?"));
     click(&mut harness, "Ordner wählen…");
     assert!(shows(&harness, "Eingang (0)"));
-    assert!(shows(&harness, "Hier liegen keine Notizen."));
+    assert!(shows(&harness, "Nichts wartet auf Ablage."));
     Ok(())
 }

@@ -47,10 +47,7 @@ fn an_answer_shows_with_its_sources_and_a_source_opens_its_note() -> TestResult 
     assert_eq!(sources.len(), 1);
 
     // The Source, not the Note's row in a list: the Inbox is listed.
-    harness
-        .get_by_role_and_label(egui::accesskit::Role::Link, "Plumber")
-        .click();
-    harness.run();
+    click(&mut harness, "Plumber");
     assert_eq!(harness.state().open_note(), Some("Home/Plumber.md"));
     assert!(shows(
         &harness,

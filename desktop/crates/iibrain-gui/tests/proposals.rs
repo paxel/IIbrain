@@ -3,8 +3,8 @@
 mod common;
 
 use common::{
-    Reply, Server, TestResult, World, app, click, fill, harness, model, model_server, sent_to,
-    shows,
+    Reply, Server, TestResult, World, app, chosen, click, fill, harness, model, model_server,
+    sent_to, shows,
 };
 use iibrain_gui::App;
 
@@ -86,7 +86,7 @@ fn a_suggested_new_folder_is_shown_as_new() -> TestResult {
     let mut harness = harness(setup(&world, &server, false, false, "en"));
     open_filing(&mut harness, "The boiler leaks, call the plumber.", "File…");
     click(&mut harness, "Propose");
-    assert!(shows(&harness, "Garden (new Folder)"));
+    assert!(chosen(&harness, "Garden (new Folder)"));
     assert!(!world.exists("Garden"));
 
     click(&mut harness, "Save");

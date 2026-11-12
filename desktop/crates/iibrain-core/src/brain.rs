@@ -82,6 +82,7 @@ impl Note {
 
 /// What a Capture brings.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Capture {
     pub text: String,
     /// How it is captured, see [`Note::via`].

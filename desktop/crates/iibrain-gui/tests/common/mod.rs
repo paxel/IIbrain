@@ -60,7 +60,9 @@ pub fn fill(harness: &mut Harness<'_, App>, label: &str, text: &str) {
         .find(|node| {
             matches!(
                 node.accesskit_node().role(),
-                egui::accesskit::Role::TextInput | egui::accesskit::Role::MultilineTextInput
+                egui::accesskit::Role::TextInput
+                    | egui::accesskit::Role::MultilineTextInput
+                    | egui::accesskit::Role::PasswordInput
             )
         })
         .unwrap_or_else(|| panic!("no field labelled {label}"));
@@ -71,10 +73,17 @@ pub fn fill(harness: &mut Harness<'_, App>, label: &str, text: &str) {
         .find(|node| {
             matches!(
                 node.accesskit_node().role(),
-                egui::accesskit::Role::TextInput | egui::accesskit::Role::MultilineTextInput
+                egui::accesskit::Role::TextInput
+                    | egui::accesskit::Role::MultilineTextInput
+                    | egui::accesskit::Role::PasswordInput
             )
         })
         .unwrap_or_else(|| panic!("no field labelled {label}"));
     field.type_text(text);
     harness.run();
+}
+
+/// Whether a choice on the screen, as a combo box shows it, is `value`.
+pub fn chosen(harness: &Harness<'_, App>, value: &str) -> bool {
+    harness.query_all_by_value(value).next().is_some()
 }

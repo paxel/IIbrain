@@ -27,7 +27,8 @@ fn world() -> World {
 
 #[test]
 fn a_pair_left_by_the_sync_tool_is_one_note_in_conflict() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     assert_eq!(core.notes("Home")?.len(), 2, "not three Notes");
     let note = core.note("Home/Plumber.md")?;
     assert_eq!(note.conflicts, [SYNCTHING]);
@@ -78,7 +79,8 @@ fn a_version_without_its_note_is_a_note_of_its_own() -> TestResult {
 
 #[test]
 fn both_versions_can_be_read_side_by_side() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     let versions = core.versions("Home/Plumber.md")?;
     let texts: Vec<&str> = versions.iter().map(|v| v.text.as_str()).collect();
     assert_eq!(texts, ["He comes on Monday.\n", "He comes on Tuesday.\n"]);
@@ -129,7 +131,8 @@ fn a_merged_text_ends_the_conflict() -> TestResult {
 
 #[test]
 fn search_finds_a_note_in_conflict_once() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     assert_eq!(core.search("comes")?.len(), 1);
     assert!(
         core.search("Tuesday")?.is_empty(),

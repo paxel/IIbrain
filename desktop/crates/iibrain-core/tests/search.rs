@@ -31,7 +31,8 @@ fn world() -> World {
 
 #[test]
 fn a_search_finds_the_notes_that_hold_every_word() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     assert_eq!(
         ids(&core.search("boiler")?),
         ["Home/Garden.md", "Home/Plumber.md"]
@@ -48,7 +49,8 @@ fn a_search_finds_the_notes_that_hold_every_word() -> TestResult {
 
 #[test]
 fn titles_and_tags_are_searched_too() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     assert_eq!(ids(&core.search("plumber")?), ["Home/Plumber.md"]);
     assert_eq!(ids(&core.search("money")?), ["Money/Tax.md"]);
     assert_eq!(ids(&core.search("garden")?), ["Home/Garden.md"]);
@@ -57,14 +59,16 @@ fn titles_and_tags_are_searched_too() -> TestResult {
 
 #[test]
 fn the_start_of_a_word_is_enough() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     assert_eq!(ids(&core.search("tomat")?), ["Home/Garden.md"]);
     Ok(())
 }
 
 #[test]
 fn a_hit_shows_the_text_around_the_found_words() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     let hits = core.search("cellar")?;
     let hit = hits.first().ok_or("a hit")?;
     assert_eq!(hit.title, "Plumber");
@@ -79,9 +83,10 @@ fn a_hit_shows_the_text_around_the_found_words() -> TestResult {
 
 #[test]
 fn signs_in_the_query_do_no_harm() -> TestResult {
-    let core = world().core();
+    let world = world();
+    let core = world.core();
     assert_eq!(
-        ids(&core.search("\"boiler\" AND (cellar*")?),
+        ids(&core.search("\"boiler\" + (cellar*")?),
         ["Home/Plumber.md"]
     );
     assert!(core.search("-- ;").is_ok());
