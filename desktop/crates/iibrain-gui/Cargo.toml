@@ -1,11 +1,15 @@
 [package]
 name = "iibrain-gui"
-description = "The IIbrain desktop app"
+description = "The IIbrain desktop app: an egui shell over iibrain-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 publish = false
+build = "build.rs"
+
+[lib]
+name = "iibrain_gui"
 
 [[bin]]
 name = "iibrain"
@@ -13,6 +17,22 @@ path = "src/bin/iibrain.rs"
 
 [dependencies]
 iibrain-core = { path = "../iibrain-core", version = "0.1.0" }
+iibrain-l10n = { path = "../iibrain-l10n", version = "0.1.0" }
+eframe = "0.35"
+egui = "0.35"
+# Where the Device keeps its own files.
+directories = "6"
+# The system's language, for English or German.
+sys-locale = "0.3"
+# The system's own dialog to pick the Brain's folder.
+rfd = "0.17"
+
+[build-dependencies]
+iibrain-l10n = { path = "../iibrain-l10n", version = "0.1.0" }
+
+[dev-dependencies]
+egui_kittest = "0.35"
+tempfile = "3.10"
 
 [lints]
 workspace = true

@@ -1,0 +1,17 @@
+{
+  "@@locale": "de",
+  "appTitle": "IIbrain",
+  "chooseBrainTitle": "Wo liegt dein Brain?",
+  "chooseBrainBody": "Dein Brain ist ein Ordner mit Markdown-Dateien. Wähle einen vorhandenen oder einen leeren Ordner. IIbrain synchronisiert ihn nie; ein Sync-Werkzeug deiner Wahl kann ihn zwischen deinen Geräten abgleichen.",
+  "chooseFolder": "Ordner wählen…",
+  "changeFolder": "Ordner wechseln…",
+  "folderNotOpened": "Dieser Ordner ließ sich nicht öffnen: {reason}",
+  "folders": "Ordner",
+  "inbox": "Eingang",
+  "brainRoot": "Brain",
+  "noNotesHere": "Hier liegen keine Notizen.",
+  "chooseNote": "Wähle eine Notiz, um sie zu lesen.",
+  "attachments": "Anhänge",
+  "extractedText": "Erkannter Text",
+  "capturedOn": "Erfasst {when}"
+}
