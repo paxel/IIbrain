@@ -1,9 +1,19 @@
+import java.util.Properties
 import javax.inject.Inject
 
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Release signing: android/key.properties points at the keystore. The file
+// is not in git. There is no fallback to the debug key: a release build
+// without it fails (see below), because an APK signed with the debug key
+// would lock every F-Droid install to that key for good.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -31,12 +41,38 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (keystoreProperties.isNotEmpty()) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                // CI hands the password over as an environment variable, so
+                // no shell or properties escaping can change it.
+                val password = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                storePassword = password ?: keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = password ?: keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            if (keystoreProperties.isNotEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
+    }
+}
+
+// A release build without key.properties stops before anything is
+// compiled, rather than turning out an unsigned or debug-signed APK.
+// Debug builds still run without the keystore.
+gradle.taskGraph.whenReady {
+    val release = allTasks.any { it.project == project && it.name == "preReleaseBuild" }
+    if (release && keystoreProperties.isEmpty()) {
+        throw GradleException(
+            "Release build without android/key.properties: refusing to sign with the debug key.",
+        )
     }
 }
 

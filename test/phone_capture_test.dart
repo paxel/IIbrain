@@ -1,7 +1,9 @@
 // What only the phone captures: the camera, files, what other apps
 // share, and Print Capture; and sharing a Note out (#23, #24).
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iibrain/src/app.dart';
 import 'package:iibrain/src/phone.dart';
 
 import 'support.dart';
@@ -104,6 +106,22 @@ void main() {
       find.text('2 Erfassungen liegen in deinem Eingang.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a print is taken once when the app is asked twice at once', (
+    tester,
+  ) async {
+    final core = FakeCore(brain: '/b');
+    final phone = FakePhone()..prints.add('/data/prints/Statement.pdf');
+    await tester.pumpWidget(
+      IIbrainApp(calls: core, phone: phone, locale: const Locale('en')),
+    );
+    // The start takes in; a return to the app asks again before it is done.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(core.calls('capture'), hasLength(1));
+    expect(find.text('1 Capture was kept in your Inbox.'), findsOneWidget);
   });
 
   testWidgets('the settings explain Print Capture and open its switch', (

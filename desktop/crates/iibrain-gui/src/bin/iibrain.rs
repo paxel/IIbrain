@@ -1,5 +1,8 @@
 //! The IIbrain desktop app.
 
+// No console window beside the app on Windows.
+#![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
+
 use std::time::Duration;
 
 use iibrain_gui::{APP_ID, App, l10n};

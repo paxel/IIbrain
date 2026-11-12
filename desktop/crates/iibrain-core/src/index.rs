@@ -68,18 +68,24 @@ impl Index {
         }
         let mut changed = false;
         let tx = self.db.transaction()?;
-        for id in brain.note_ids()? {
+        for (id, versions) in brain.note_files()? {
             // A Note another tool removes between the listing and the
             // reading is gone; the next refresh sees that.
-            let Ok(note) = brain.read(&id) else { continue };
-            let mut stamp = brain.fingerprint(&id)?;
-            for version in &note.conflicts {
+            let Ok(mut stamp) = brain.fingerprint(&id) else {
+                continue;
+            };
+            for version in &versions {
                 stamp.push('|');
                 stamp.push_str(version);
             }
+            // Only a Note that changed is read; the others cost one
+            // look at their files' sizes and times.
             if known.remove(&id).as_deref() == Some(stamp.as_str()) {
                 continue;
             }
+            let Ok(note) = brain.read_with(&id, versions) else {
+                continue;
+            };
             changed = true;
             let json =
                 serde_json::to_string(&note).map_err(|e| Error::Unreadable(e.to_string()))?;
@@ -130,9 +136,20 @@ impl Index {
     /// Every Note, newest Capture first; Notes without a capture time
     /// come last, by title.
     pub fn notes(&self) -> Result<Vec<Note>> {
-        let mut rows = self.db.prepare("SELECT note FROM notes")?;
+        self.notes_where("?1 IS NOT NULL", "")
+    }
+
+    /// The Notes lying directly in `folder`, in the same order.
+    pub fn notes_in(&self, folder: &str) -> Result<Vec<Note>> {
+        self.notes_where("json_extract(note, '$.folder') = ?1", folder)
+    }
+
+    fn notes_where(&self, condition: &str, value: &str) -> Result<Vec<Note>> {
+        let mut rows = self
+            .db
+            .prepare(&format!("SELECT note FROM notes WHERE {condition}"))?;
         let mut notes = Vec::new();
-        for row in rows.query_map([], |r| r.get::<_, String>(0))? {
+        for row in rows.query_map(params![value], |r| r.get::<_, String>(0))? {
             let note: Note =
                 serde_json::from_str(&row?).map_err(|e| Error::Unreadable(e.to_string()))?;
             notes.push(note);

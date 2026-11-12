@@ -133,3 +133,38 @@ fn a_device_without_a_brain_says_so() -> TestResult {
     assert!(Core::open(device).is_err());
     Ok(())
 }
+
+#[test]
+fn a_large_brain_stays_quick() -> TestResult {
+    use std::time::{Duration, Instant};
+
+    let world = World::new();
+    for n in 0..3000 {
+        world.write(
+            &format!("Folder {}/Note {n}.md", n % 30),
+            &format!("---\ntitle: Note {n}\ntags: [bulk]\n---\n\nThe text of note number {n}.\n"),
+        );
+    }
+    let opened = Instant::now();
+    let mut core = world.core();
+    let opening = opened.elapsed();
+    assert_eq!(core.all_notes()?.len(), 3000);
+
+    // Nothing changed: a refresh only looks at sizes and times.
+    let refreshed = Instant::now();
+    assert!(!core.refresh()?);
+    let refreshing = refreshed.elapsed();
+
+    let listed = Instant::now();
+    assert_eq!(core.notes("Folder 7")?.len(), 100);
+    assert_eq!(core.folders()?.len(), 31);
+    let listing = listed.elapsed();
+
+    eprintln!(
+        "3000 Notes: opened in {opening:?}, refreshed in {refreshing:?}, listed in {listing:?}"
+    );
+    assert!(opening < Duration::from_secs(30), "{opening:?}");
+    assert!(refreshing < Duration::from_secs(3), "{refreshing:?}");
+    assert!(listing < Duration::from_secs(1), "{listing:?}");
+    Ok(())
+}

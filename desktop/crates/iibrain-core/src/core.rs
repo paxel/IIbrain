@@ -73,12 +73,7 @@ impl Core {
 
     /// The Notes lying directly in `folder`, newest Capture first.
     pub fn notes(&self, folder: &str) -> Result<Vec<Note>> {
-        Ok(self
-            .index
-            .notes()?
-            .into_iter()
-            .filter(|n| n.folder == folder)
-            .collect())
+        self.index.notes_in(folder)
     }
 
     /// Every Note of the Brain.

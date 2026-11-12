@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes THIRD-PARTY-NOTICES.md: every third-party component the apps ship,
 with its licence. The Rust crates come from `cargo tree` over what the
-desktop app and the phone's library link, the Dart packages from
+desktop app and the phone's library link on any platform, the Dart packages from
 pubspec.lock, their licences from the packages' own LICENSE files in the
 pub cache.
 
@@ -19,7 +19,7 @@ OWN = ("iibrain-",)
 def crates():
     out = subprocess.run(
         [
-            "cargo", "tree", "--locked", "-p", "iibrain-gui", "-p", "iibrain-ffi",
+            "cargo", "tree", "--locked", "--target", "all", "-p", "iibrain-gui", "-p", "iibrain-ffi",
             "-e", "normal,build", "--prefix", "none", "--format", "{p}|{l}",
         ],
         cwd=ROOT / "desktop", check=True, capture_output=True, text=True,

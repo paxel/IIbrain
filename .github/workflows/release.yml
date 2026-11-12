@@ -1,8 +1,9 @@
 # Builds what a release needs when a version tag is pushed: the desktop app
 # for Linux, macOS and Windows in the forms the Homebrew tap and the Scoop
-# bucket take, the phone app as an APK, and the rendered channel files. All
-# of it lands in a draft release; nothing here holds a signing key or writes
-# to the tap, the bucket or the F-Droid repository.
+# bucket take, the rendered channel files, and the phone app as a debug APK
+# that proves the build. All of it lands in a draft release; nothing here
+# holds a signing key or writes to the tap, the bucket or the F-Droid
+# repository. The release APK is signed and published by the maintainer.
 name: Release
 
 on:
@@ -72,7 +73,7 @@ jobs:
         run: gh release upload "$GITHUB_REF_NAME" dist/* --clobber
 
   phone:
-    name: Phone (APK)
+    name: Phone (debug APK)
     needs: draft
     runs-on: ubuntu-latest
     permissions:
@@ -85,25 +86,23 @@ jobs:
           cache: true
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch, 2026-10-16
         with:
-          targets: aarch64-linux-android, armv7-linux-androideabi
+          targets: aarch64-linux-android
       - name: cargo-ndk, which builds the core into the APK
         run: cargo install cargo-ndk --locked
-      # Not signed with a release key: that key is the maintainer's, and
-      # signing is their step.
+      # A debug build, signed with the debug key and named so: the release
+      # key is the maintainer's, and a release build refuses to run without
+      # it. This one is no install for users; it shows that the app builds.
       - name: Build
         run: |
           flutter pub get
-          flutter build apk --release --split-per-abi
+          flutter build apk --debug
       - name: Upload to the draft
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="${GITHUB_REF_NAME#v}"
-          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
-            abi="$(basename "$apk" | sed 's/^app-//; s/-release\.apk$//')"
-            cp "$apk" "iibrain-$version-android-$abi-unsigned.apk"
-          done
-          gh release upload "$GITHUB_REF_NAME" iibrain-*-unsigned.apk --clobber
+          cp build/app/outputs/flutter-apk/app-debug.apk "iibrain-$version-android-debug.apk"
+          gh release upload "$GITHUB_REF_NAME" "iibrain-$version-android-debug.apk" --clobber
 
   channels:
     name: Formula, cask and Scoop manifest

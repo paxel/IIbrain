@@ -163,8 +163,9 @@ impl Brain {
         Ok(self.note_files()?.into_keys().collect())
     }
 
-    /// Every Note's id with the ids of its other versions.
-    fn note_files(&self) -> Result<BTreeMap<String, Vec<String>>> {
+    /// Every Note's id with the ids of its other versions, from one
+    /// walk through the folder.
+    pub fn note_files(&self) -> Result<BTreeMap<String, Vec<String>>> {
         let mut files = Vec::new();
         self.walk_notes(&self.root, "", &mut files)?;
         let all: std::collections::BTreeSet<String> = files.iter().cloned().collect();
@@ -199,7 +200,9 @@ impl Brain {
         self.read_with(id, Vec::new())
     }
 
-    fn read_with(&self, id: &str, conflicts: Vec<String>) -> Result<Note> {
+    /// The Note `id`, whose other versions the caller knows from
+    /// [`Brain::note_files`]; it reads this Note's files alone.
+    pub fn read_with(&self, id: &str, conflicts: Vec<String>) -> Result<Note> {
         let parsed = self.parse(id)?;
         let front = &parsed.front;
         let (attachments, page_text) = self.read_files(id)?;

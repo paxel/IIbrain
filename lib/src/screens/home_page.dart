@@ -29,6 +29,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<Folder> _folders = const [];
   int _atRoot = 0;
   bool _loaded = false;
+
+  /// Whether what waits outside the app is being taken in right now.
+  bool _takingIn = false;
   bool _started = false;
 
   @override
@@ -109,6 +112,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Takes into the Inbox what waits outside the app: what another app
   /// shared, and what was printed to IIbrain (Print Capture).
   Future<void> _takeIn() async {
+    // One at a time: the start, a return to the app and a share may
+    // all ask at once, and a waiting print must be captured once.
+    if (_takingIn) return;
+    _takingIn = true;
+    try {
+      await _takeInNow();
+    } finally {
+      _takingIn = false;
+    }
+  }
+
+  Future<void> _takeInNow() async {
     final scope = AppScope.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final t = context.t;

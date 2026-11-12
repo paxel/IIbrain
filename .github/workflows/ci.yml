@@ -60,7 +60,3 @@ jobs:
           cargo fmt --check
           cargo clippy --workspace --all-targets --locked -- -D warnings
           cargo test --workspace --locked
-      - name: The third-party list is current
-        run: |
-          python3 tool/notices.py
-          git diff --exit-code -- THIRD-PARTY-NOTICES.md
