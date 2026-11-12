@@ -546,6 +546,20 @@ impl Brain {
         Ok(())
     }
 
+    /// Ends a Conflict by keeping one version: the Note's own file, or
+    /// one of its other versions, whose file then takes its place.
+    pub fn keep_version(&self, id: &str, version: &str) -> Result<()> {
+        let note = self.read(id)?;
+        if version != id {
+            if !note.conflicts.iter().any(|v| v == version) {
+                return Err(Error::NotFound(version.to_string()));
+            }
+            fs::copy(self.path_of(version)?, self.path_of(id)?)?;
+        }
+        let text = self.read_version(id)?.text;
+        self.resolve(id, &text)
+    }
+
     // ------------------------------------------------------- folders
 
     pub fn create_folder(&self, name: &str) -> Result<()> {

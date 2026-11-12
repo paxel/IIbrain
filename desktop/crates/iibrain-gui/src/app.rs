@@ -48,6 +48,14 @@ pub(crate) enum Dialog {
         from: String,
         name: String,
     },
+    /// The versions of a Note in Conflict, side by side, and the text
+    /// the person merges them into.
+    Conflict {
+        id: String,
+        /// Each version's file and text.
+        versions: Vec<(String, String)>,
+        merged: String,
+    },
     /// The connected Models, and the fields for a new one.
     Models {
         name: String,
@@ -530,6 +538,11 @@ impl App {
                     } else {
                         title
                     };
+                    let title = if note.conflicts.is_empty() {
+                        title
+                    } else {
+                        self.t.conflict_suffix(&title)
+                    };
                     let title = if private {
                         self.t.private_suffix(&title)
                     } else {
@@ -593,6 +606,20 @@ impl App {
                 });
             }
         });
+        if !note.conflicts.is_empty() {
+            ui.separator();
+            let count = i64::try_from(note.conflicts.len() + 1).unwrap_or(i64::MAX);
+            ui.colored_label(ui.visuals().warn_fg_color, self.t.conflict_banner(count));
+            if ui.button(self.t.resolve_conflict()).clicked()
+                && let Some(versions) = self.act(|core| core.versions(&note.id))
+            {
+                self.dialog = Some(Dialog::Conflict {
+                    id: note.id.clone(),
+                    merged: note.text.clone(),
+                    versions: versions.into_iter().map(|v| (v.id, v.text)).collect(),
+                });
+            }
+        }
         ui.separator();
         egui::ScrollArea::vertical()
             .id_salt("note")
@@ -706,11 +733,14 @@ impl App {
             Dialog::NewFolder { .. } => self.t.new_folder_title(),
             Dialog::RenameFolder { .. } => self.t.rename_folder_title(),
             Dialog::Models { .. } => self.t.models_title(),
+            Dialog::Conflict { .. } => self.t.conflict_title(),
         };
         let mut keep = true;
+        let wide = matches!(dialog, Dialog::Conflict { .. });
         egui::Window::new(title)
             .collapsible(false)
             .resizable(false)
+            .min_width(if wide { 760.0 } else { 0.0 })
             .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
             .show(ui.ctx(), |ui| {
                 keep = self.dialog_body(ui, &mut dialog);
@@ -1025,6 +1055,52 @@ impl App {
                         }
                     }
                     if ui.button(self.t.close()).clicked() {
+                        keep = false;
+                    }
+                });
+                keep
+            }
+            Dialog::Conflict {
+                id,
+                versions,
+                merged,
+            } => {
+                let mut keep = true;
+                egui::ScrollArea::vertical()
+                    .id_salt("conflict")
+                    .max_height(520.0)
+                    .show(ui, |ui| {
+                        ui.columns(versions.len().max(1), |columns| {
+                            for (number, ((version, text), ui)) in
+                                versions.iter().zip(columns.iter_mut()).enumerate()
+                            {
+                                let number = i64::try_from(number + 1).unwrap_or(i64::MAX);
+                                ui.strong(self.t.version_of(number));
+                                ui.add(egui::Label::new(text.as_str()).selectable(true));
+                                if ui.button(self.t.keep_version(number)).clicked()
+                                    && self.act(|core| core.keep_version(id, version)).is_some()
+                                {
+                                    keep = false;
+                                }
+                            }
+                        });
+                        ui.separator();
+                        let label = ui.label(self.t.merged_text());
+                        ui.add(
+                            egui::TextEdit::multiline(merged)
+                                .desired_rows(8)
+                                .desired_width(f32::INFINITY),
+                        )
+                        .labelled_by(label.id);
+                    });
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    if ui.button(self.t.keep_merged()).clicked()
+                        && self.act(|core| core.resolve(id, merged)).is_some()
+                    {
+                        keep = false;
+                    }
+                    if ui.button(self.t.cancel()).clicked() {
                         keep = false;
                     }
                 });

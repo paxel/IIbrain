@@ -472,5 +472,57 @@
         "type": "String"
       }
     }
+  },
+  "conflictSuffix": "{name} · Conflict",
+  "@conflictSuffix": {
+    "description": "A Note's title in a list while it is in Conflict.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictBanner": "{count} versions of this Note lie side by side: two devices changed it and your sync tool kept both.",
+  "@conflictBanner": {
+    "description": "Over a Note in Conflict.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resolveConflict": "Resolve…",
+  "@resolveConflict": {
+    "description": "Button that opens the versions of a Note in Conflict side by side."
+  },
+  "conflictTitle": "Conflict",
+  "@conflictTitle": {
+    "description": "Title of the dialog that shows the versions of a Note in Conflict."
+  },
+  "versionOf": "Version {number}",
+  "@versionOf": {
+    "description": "Heading over one version of a Note in Conflict.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "keepVersion": "Keep version {number}",
+  "@keepVersion": {
+    "description": "Button that ends a Conflict by keeping one version.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "mergedText": "Merged text",
+  "@mergedText": {
+    "description": "Label of the field in which the person merges the versions of a Note."
+  },
+  "keepMerged": "Keep the merged text",
+  "@keepMerged": {
+    "description": "Button that ends a Conflict with the merged text."
   }
 }

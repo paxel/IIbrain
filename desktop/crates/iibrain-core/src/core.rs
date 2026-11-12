@@ -156,6 +156,35 @@ impl Core {
         self.device.save()
     }
 
+    // ------------------------------------------------------- conflicts
+
+    /// The versions of a Note in Conflict: its own file first, then
+    /// the ones a Sync Tool left beside it.
+    pub fn versions(&self, id: &str) -> Result<Vec<Note>> {
+        let note = self.brain.read(id)?;
+        let mut versions = vec![self.brain.read_version(id)?];
+        for version in &note.conflicts {
+            versions.push(self.brain.read_version(version)?);
+        }
+        Ok(versions)
+    }
+
+    /// Ends a Conflict by keeping the version `version`; the files of
+    /// the others are removed.
+    pub fn keep_version(&mut self, id: &str, version: &str) -> Result<()> {
+        self.brain.keep_version(id, version)?;
+        self.refresh()?;
+        Ok(())
+    }
+
+    /// Ends a Conflict with a text the person merged; the files of the
+    /// other versions are removed.
+    pub fn resolve(&mut self, id: &str, text: &str) -> Result<()> {
+        self.brain.resolve(id, text)?;
+        self.refresh()?;
+        Ok(())
+    }
+
     // ------------------------------------------------------- privacy
 
     /// Whether `note` is Private: by its own mark, by its Folder's, or

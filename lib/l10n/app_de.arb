@@ -96,5 +96,13 @@
   "keepAnswer": "Als Notiz behalten",
   "writtenByModel": "Vom Modell {model} geschrieben, aus diesen Quellen:",
   "answerSuffix": "{name} · Antwort",
-  "sourceGone": "{name} (nicht mehr vorhanden)"
+  "sourceGone": "{name} (nicht mehr vorhanden)",
+  "conflictSuffix": "{name} · Konflikt",
+  "conflictBanner": "{count} Fassungen dieser Notiz liegen nebeneinander: Zwei Geräte haben sie geändert, und dein Sync-Werkzeug hat beide behalten.",
+  "resolveConflict": "Auflösen…",
+  "conflictTitle": "Konflikt",
+  "versionOf": "Fassung {number}",
+  "keepVersion": "Fassung {number} behalten",
+  "mergedText": "Zusammengeführter Text",
+  "keepMerged": "Zusammengeführten Text behalten"
 }
