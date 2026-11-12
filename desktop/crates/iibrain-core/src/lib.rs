@@ -1,6 +1,7 @@
 //! The core of IIbrain: everything the phone app and the desktop app do
 //! alike (docs/adr/0008).
 
+pub mod api;
 pub mod asking;
 pub mod brain;
 pub mod core;

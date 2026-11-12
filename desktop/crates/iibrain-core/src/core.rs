@@ -223,6 +223,17 @@ impl Core {
         self.brain.set_unfiled_private(private)
     }
 
+    /// Opens or closes the switch that lets what a Live Lookup read,
+    /// in the `calendar` or the `contacts`, go to a Cloud Model.
+    pub fn set_lookup_to_cloud(&mut self, kind: &str, allowed: bool) -> Result<()> {
+        match kind {
+            "calendar" => self.device.settings.calendar_to_cloud = allowed,
+            "contacts" => self.device.settings.contacts_to_cloud = allowed,
+            other => return Err(Error::Invalid(other.to_string())),
+        }
+        self.device.save()
+    }
+
     // ------------------------------------------------------- writing
 
     /// Keeps a Capture as an Unfiled Note and says its id.

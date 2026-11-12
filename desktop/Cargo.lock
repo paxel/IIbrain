@@ -2123,6 +2123,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "iibrain-ffi"
+version = "0.1.0"
+dependencies = [
+ "iibrain-core",
+]
+
+[[package]]
 name = "iibrain-gui"
 version = "0.1.0"
 dependencies = [

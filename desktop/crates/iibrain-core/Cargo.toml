@@ -38,6 +38,7 @@ lopdf = { version = "0.47", default-features = false }
 
 [dev-dependencies]
 iibrain-testing = { path = "../iibrain-testing" }
+serde_json = "1.0"
 tempfile = "3.10"
 
 [lints]

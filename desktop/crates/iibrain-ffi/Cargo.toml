@@ -1,0 +1,19 @@
+[package]
+name = "iibrain-ffi"
+description = "The core as a shared library for the phone app: one C function that takes a request as JSON text and gives the answer as JSON text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+# libiibrain.so, loaded by the phone app with dart:ffi.
+name = "iibrain"
+crate-type = ["cdylib"]
+
+[dependencies]
+iibrain-core = { path = "../iibrain-core", version = "0.1.0" }
+
+[lints]
+workspace = true

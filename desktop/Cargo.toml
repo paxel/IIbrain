@@ -4,6 +4,7 @@ members = [
     "crates/iibrain-core",
     "crates/iibrain-l10n",
     "crates/iibrain-gui",
+    "crates/iibrain-ffi",
     "crates/iibrain-testing",
 ]
 
