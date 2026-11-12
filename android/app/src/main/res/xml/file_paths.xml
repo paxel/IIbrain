@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the app hands to other apps by a content URI: the place a camera
+     app writes a photo to, and the Attachments of a Note that is shared,
+     which lie in the Brain's folder in shared storage. -->
+<paths>
+    <cache-path name="captures" path="captures/"/>
+    <external-path name="storage" path="."/>
+</paths>

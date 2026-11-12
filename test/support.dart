@@ -164,6 +164,11 @@ class FakeCore implements CoreCalls {
             'link': capture['link'],
             'private': capture['private'] ?? false,
             'captured': '2026-11-12T15:30:00+01:00',
+            'attachments': [
+              if (capture['files'] case final List<Object?> files)
+                for (final file in files)
+                  {'name': '$file'.substring('$file'.lastIndexOf('/') + 1)},
+            ],
           },
         );
         return id;
@@ -256,6 +261,8 @@ class FakeCore implements CoreCalls {
         return _state();
       case 'extract_one':
         return false;
+      case 'attachment_path':
+        return '/b/${request['id']}.files/${request['name']}';
       default:
         throw CoreError('invalid', 'no call named ${request['call']}');
     }
@@ -299,6 +306,81 @@ class FakePhone implements Phone {
 
   @override
   Future<void> createFolder(String path) async => storage.add(path);
+
+  /// The photo the camera takes next; none when the person backs out.
+  String? photo;
+
+  /// The files the person picks next.
+  List<String> picked = [];
+
+  /// What another app shared and the app has not taken yet.
+  Shared? shared;
+  void Function()? _onShared;
+
+  /// What the app handed to other apps: each a text and its files.
+  final List<(String, List<String>)> sharedOut = [];
+  final List<String> prints = [];
+  int printSettingsOpened = 0;
+
+  /// What the calendar and the contacts hold; null when the person
+  /// does not let the app read them.
+  String? events = '2026-11-16 14:00 to 15:00: Dentist';
+  String? people = 'Max Brandt: 0151 555';
+
+  /// The words each contacts lookup went by.
+  final List<List<String>> contactWords = [];
+  int calendarReads = 0;
+  final List<String> discarded = [];
+
+  /// Another app shares [shared] while this one runs.
+  void shareIn(Shared shared) {
+    this.shared = shared;
+    _onShared?.call();
+  }
+
+  @override
+  Future<String?> takePhoto() async => photo;
+
+  @override
+  Future<List<String>> pickFiles() async => picked;
+
+  @override
+  Future<Shared?> takeShared() async {
+    final taken = shared;
+    shared = null;
+    return taken;
+  }
+
+  @override
+  void onShared(void Function() listener) => _onShared = listener;
+
+  @override
+  Future<void> share(String text, List<String> files) async =>
+      sharedOut.add((text, files));
+
+  @override
+  Future<List<String>> waitingPrints() async => [...prints];
+
+  @override
+  Future<void> openPrintSettings() async => printSettingsOpened++;
+
+  @override
+  Future<String?> calendar() async {
+    calendarReads++;
+    return events;
+  }
+
+  @override
+  Future<String?> contacts(List<String> words) async {
+    contactWords.add(words);
+    return people;
+  }
+
+  @override
+  Future<void> discard(List<String> paths) async {
+    discarded.addAll(paths);
+    prints.removeWhere(paths.contains);
+  }
 }
 
 /// Starts the app over the stand-ins and lets it settle.

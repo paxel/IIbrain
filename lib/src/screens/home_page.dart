@@ -44,6 +44,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _started = true;
       unawaited(_reload());
       _readWaitingTexts();
+      // What another app shares while this one runs.
+      AppScope.of(context).phone.onShared(() {
+        if (mounted) unawaited(_takeIn());
+      });
+      unawaited(_takeIn());
     }
   }
 
@@ -56,7 +61,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // What the Sync Tool brought while the app was away.
-    if (state == AppLifecycleState.resumed) unawaited(_reload(refresh: true));
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_reload(refresh: true));
+      unawaited(_takeIn());
+    }
   }
 
   Future<void> _reload({bool refresh = false}) async {
@@ -97,6 +105,43 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Reads the texts of new Attachments and fetches the pages of new
   /// links, beside the screens.
   void _readWaitingTexts() => readWaitingTexts(AppScope.of(context).core);
+
+  /// Takes into the Inbox what waits outside the app: what another app
+  /// shared, and what was printed to IIbrain (Print Capture).
+  Future<void> _takeIn() async {
+    final scope = AppScope.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final t = context.t;
+    var kept = 0;
+    try {
+      final shared = await scope.phone.takeShared();
+      if (shared != null) {
+        if (shared.files.isEmpty && isLink(shared.text)) {
+          await scope.core.capture(via: 'link', link: shared.text.trim());
+        } else {
+          await scope.core.capture(
+            text: shared.text,
+            via: 'share',
+            files: shared.files,
+          );
+          await scope.phone.discard(shared.files);
+        }
+        kept++;
+      }
+      for (final print in await scope.phone.waitingPrints()) {
+        await scope.core.capture(via: 'print', files: [print]);
+        await scope.phone.discard([print]);
+        kept++;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showError(context, e);
+    }
+    if (kept == 0 || !mounted) return;
+    messenger.showSnackBar(SnackBar(content: Text(t.keptInInbox(kept))));
+    _readWaitingTexts();
+    await _reload();
+  }
 
   Future<void> _capture() async {
     await Navigator.of(

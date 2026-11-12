@@ -23,6 +23,13 @@ class _AskTabState extends State<AskTab> {
   Asked? _asked;
   bool _noModel = false;
 
+  /// The Live Lookups for the next Question; off again after each one.
+  bool _calendar = false;
+  bool _contacts = false;
+
+  /// Whether the person refused a Live Lookup the last Question wanted.
+  bool _refused = false;
+
   @override
   void dispose() {
     _question.dispose();
@@ -30,14 +37,43 @@ class _AskTabState extends State<AskTab> {
   }
 
   Future<void> _ask() async {
-    final core = AppScope.of(context).core;
+    final scope = AppScope.of(context);
+    final core = scope.core;
+    final question = _question.text.trim();
     setState(() {
       _asking = true;
       _asked = null;
       _noModel = false;
+      _refused = false;
     });
     try {
-      final asked = await core.ask(_question.text.trim());
+      // What the phone reads now, for this Question only (ADR 0010).
+      final lookups = <Lookup>[];
+      var refused = false;
+      if (_calendar) {
+        final events = await scope.phone.calendar();
+        refused |= events == null;
+        if (events != null) lookups.add(Lookup(kind: 'calendar', text: events));
+      }
+      if (_contacts) {
+        final words = [
+          for (final word in question.split(
+            RegExp(r'[^\p{L}\p{N}]+', unicode: true),
+          ))
+            if (word.length >= 3) word,
+        ];
+        final people = await scope.phone.contacts(words);
+        refused |= people == null;
+        if (people != null) lookups.add(Lookup(kind: 'contacts', text: people));
+      }
+      final asked = await core.ask(question, lookups: lookups);
+      if (mounted) {
+        setState(() {
+          _refused = refused;
+          _calendar = false;
+          _contacts = false;
+        });
+      }
       if (!mounted) return;
       setState(() => _asked = asked);
     } on CoreError catch (e) {
@@ -92,6 +128,24 @@ class _AskTabState extends State<AskTab> {
           ),
           onChanged: (_) => setState(() {}),
         ),
+        Wrap(
+          spacing: 8,
+          children: [
+            FilterChip(
+              label: Text(t.lookupCalendar),
+              selected: _calendar,
+              onSelected: (on) => setState(() => _calendar = on),
+            ),
+            FilterChip(
+              label: Text(t.lookupContacts),
+              selected: _contacts,
+              onSelected: (on) => setState(() => _contacts = on),
+            ),
+          ],
+        ),
+        if (_calendar || _contacts)
+          Text(t.lookupExplain, style: text.bodySmall),
+        if (_refused) Text(t.lookupRefused, style: text.bodySmall),
         const SizedBox(height: 12),
         if (_asking)
           Row(

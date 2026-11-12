@@ -104,6 +104,26 @@ class _NotePageState extends State<NotePage> {
     }
   }
 
+  /// Hands the Note to another app: its title and text, and its
+  /// Attachments.
+  Future<void> _share(Note note) async {
+    final scope = AppScope.of(context);
+    try {
+      final files = [
+        for (final attachment in note.attachments)
+          await scope.core.attachmentPath(note.id, attachment.name),
+      ];
+      final text = note.text.trim();
+      await scope.phone.share(
+        text.startsWith(note.listTitle) ? text : '${note.listTitle}\n\n$text',
+        files,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showError(context, e);
+    }
+  }
+
   Future<void> _push(Widget page) async {
     await Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (context) => page));
@@ -128,6 +148,11 @@ class _NotePageState extends State<NotePage> {
               tooltip: note.unfiled ? t.fileNote : t.noteDetails,
               onPressed: () => unawaited(_file(note)),
               icon: const Icon(Icons.drive_file_move_outlined),
+            ),
+            IconButton(
+              tooltip: t.share,
+              onPressed: () => unawaited(_share(note)),
+              icon: const Icon(Icons.share_outlined),
             ),
             IconButton(
               tooltip: t.delete,

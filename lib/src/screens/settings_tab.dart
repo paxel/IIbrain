@@ -43,6 +43,18 @@ class _SettingsTabState extends State<SettingsTab> {
     }
   }
 
+  Future<void> _lookup(String kind, bool allowed) async {
+    try {
+      final state = await AppScope.of(context).core
+          .setLookupToCloud(kind, allowed: allowed);
+      if (!mounted) return;
+      setState(() => _state = state);
+    } catch (e) {
+      if (!mounted) return;
+      showError(context, e);
+    }
+  }
+
   Future<void> _models() async {
     await Navigator.of(
       context,
@@ -87,6 +99,32 @@ class _SettingsTabState extends State<SettingsTab> {
             onPressed: () => unawaited(_changeFolder()),
             child: Text(t.changeFolder),
           ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.print_outlined),
+          title: Text(t.printCapture),
+          subtitle: Text(t.printCaptureBody),
+          isThreeLine: true,
+          trailing: IconButton(
+            tooltip: t.openPrintSettings,
+            onPressed: () =>
+                unawaited(AppScope.of(context).phone.openPrintSettings()),
+            icon: const Icon(Icons.open_in_new),
+          ),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.event_outlined),
+          value: state.calendarToCloud,
+          title: Text(t.calendarToCloud),
+          subtitle: Text(t.lookupLocalOnly),
+          onChanged: (allowed) => unawaited(_lookup('calendar', allowed)),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.contacts_outlined),
+          value: state.contactsToCloud,
+          title: Text(t.contactsToCloud),
+          subtitle: Text(t.lookupLocalOnly),
+          onChanged: (allowed) => unawaited(_lookup('contacts', allowed)),
         ),
         ListTile(
           leading: const Icon(Icons.hub_outlined),

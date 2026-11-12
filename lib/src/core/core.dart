@@ -60,6 +60,10 @@ class Core {
   Future<Note> note(String id) async =>
       Note.fromJson(_map(await _call('note', {'id': id})));
 
+  /// Where the Attachment [name] of the Note [id] lies.
+  Future<String> attachmentPath(String id, String name) async =>
+      await _call('attachment_path', {'id': id, 'name': name}) as String? ?? '';
+
   Future<List<Hit>> search(String query) async => [
     for (final item in _maps(await _call('search', {'query': query})))
       Hit.fromJson(item),

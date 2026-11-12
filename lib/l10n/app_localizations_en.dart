@@ -452,4 +452,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorIndex(String reason) {
     return 'The app\'s index could not be read or written: $reason';
   }
+
+  @override
+  String get takePhoto => 'Take a photo';
+
+  @override
+  String removeFile(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String keptInInbox(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Captures were kept in your Inbox.',
+      one: '1 Capture was kept in your Inbox.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get printCapture => 'Print Capture';
+
+  @override
+  String get printCaptureBody =>
+      'Switch on IIbrain as a print service once. Then choose IIbrain as the printer in any app: the page arrives as a PDF in your Inbox the next time you open IIbrain.';
+
+  @override
+  String get openPrintSettings => 'Open the print settings';
+
+  @override
+  String get lookupCalendar => 'Calendar';
+
+  @override
+  String get lookupContacts => 'Contacts';
+
+  @override
+  String get lookupExplain =>
+      'Read now, for this Question only. Nothing of it is kept in your Brain.';
+
+  @override
+  String get lookupRefused =>
+      'IIbrain may not read this. Allow it in the system\'s settings for the app.';
+
+  @override
+  String get calendarToCloud => 'Calendar may go to Cloud Models';
+
+  @override
+  String get contactsToCloud => 'Contacts may go to Cloud Models';
+
+  @override
+  String get lookupLocalOnly => 'Off: it goes to Local Models only.';
 }

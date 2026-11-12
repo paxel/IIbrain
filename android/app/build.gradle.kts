@@ -145,6 +145,12 @@ kotlin {
     }
 }
 
+dependencies {
+    // FileProvider, for the camera app and for sharing a Note's
+    // Attachments; already part of Flutter's own dependencies.
+    implementation("androidx.core:core:1.13.1")
+}
+
 flutter {
     source = "../.."
 }

@@ -595,5 +595,71 @@
         "type": "String"
       }
     }
+  },
+  "takePhoto": "Take a photo",
+  "@takePhoto": {
+    "description": "Button in the phone's capture screen that opens the camera."
+  },
+  "removeFile": "Remove {name}",
+  "@removeFile": {
+    "description": "Tooltip of the button that takes a file out of a Capture before it is saved.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "keptInInbox": "{count, plural, =1{1 Capture was kept in your Inbox.} other{{count} Captures were kept in your Inbox.}}",
+  "@keptInInbox": {
+    "description": "After the phone took in what another app shared or printed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "share": "Share",
+  "@share": {
+    "description": "Button that hands a Note to another app."
+  },
+  "printCapture": "Print Capture",
+  "@printCapture": {
+    "description": "The setting that explains and sets up Print Capture."
+  },
+  "printCaptureBody": "Switch on IIbrain as a print service once. Then choose IIbrain as the printer in any app: the page arrives as a PDF in your Inbox the next time you open IIbrain.",
+  "@printCaptureBody": {
+    "description": "Explains Print Capture in the phone's settings."
+  },
+  "openPrintSettings": "Open the print settings",
+  "@openPrintSettings": {
+    "description": "Button that opens the system's list of print services."
+  },
+  "lookupCalendar": "Calendar",
+  "@lookupCalendar": {
+    "description": "Switch on the ask screen: read the calendar for this Question."
+  },
+  "lookupContacts": "Contacts",
+  "@lookupContacts": {
+    "description": "Switch on the ask screen: read the contacts for this Question."
+  },
+  "lookupExplain": "Read now, for this Question only. Nothing of it is kept in your Brain.",
+  "@lookupExplain": {
+    "description": "Under the Live Lookup switches of the ask screen."
+  },
+  "lookupRefused": "IIbrain may not read this. Allow it in the system's settings for the app.",
+  "@lookupRefused": {
+    "description": "When the person refused the calendar or contacts permission."
+  },
+  "calendarToCloud": "Calendar may go to Cloud Models",
+  "@calendarToCloud": {
+    "description": "Setting: whether what a Live Lookup read in the calendar may go to a Cloud Model."
+  },
+  "contactsToCloud": "Contacts may go to Cloud Models",
+  "@contactsToCloud": {
+    "description": "Setting: whether what a Live Lookup read in the contacts may go to a Cloud Model."
+  },
+  "lookupLocalOnly": "Off: it goes to Local Models only.",
+  "@lookupLocalOnly": {
+    "description": "Under each of the two Live Lookup settings."
   }
 }

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Print Capture: IIbrain as a printer of the system (docs/adr/0007). -->
+<print-service xmlns:android="http://schemas.android.com/apk/res/android"/>

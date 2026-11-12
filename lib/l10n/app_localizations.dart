@@ -811,6 +811,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The app\'s index could not be read or written: {reason}'**
   String errorIndex(String reason);
+
+  /// Button in the phone's capture screen that opens the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get takePhoto;
+
+  /// Tooltip of the button that takes a file out of a Capture before it is saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String removeFile(String name);
+
+  /// After the phone took in what another app shared or printed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 Capture was kept in your Inbox.} other{{count} Captures were kept in your Inbox.}}'**
+  String keptInInbox(int count);
+
+  /// Button that hands a Note to another app.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// The setting that explains and sets up Print Capture.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Capture'**
+  String get printCapture;
+
+  /// Explains Print Capture in the phone's settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch on IIbrain as a print service once. Then choose IIbrain as the printer in any app: the page arrives as a PDF in your Inbox the next time you open IIbrain.'**
+  String get printCaptureBody;
+
+  /// Button that opens the system's list of print services.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the print settings'**
+  String get openPrintSettings;
+
+  /// Switch on the ask screen: read the calendar for this Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get lookupCalendar;
+
+  /// Switch on the ask screen: read the contacts for this Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts'**
+  String get lookupContacts;
+
+  /// Under the Live Lookup switches of the ask screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Read now, for this Question only. Nothing of it is kept in your Brain.'**
+  String get lookupExplain;
+
+  /// When the person refused the calendar or contacts permission.
+  ///
+  /// In en, this message translates to:
+  /// **'IIbrain may not read this. Allow it in the system\'s settings for the app.'**
+  String get lookupRefused;
+
+  /// Setting: whether what a Live Lookup read in the calendar may go to a Cloud Model.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar may go to Cloud Models'**
+  String get calendarToCloud;
+
+  /// Setting: whether what a Live Lookup read in the contacts may go to a Cloud Model.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts may go to Cloud Models'**
+  String get contactsToCloud;
+
+  /// Under each of the two Live Lookup settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: it goes to Local Models only.'**
+  String get lookupLocalOnly;
 }
 
 class _AppLocalizationsDelegate
