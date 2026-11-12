@@ -45,5 +45,8 @@
   "errorOther": "Etwas ging schief: {reason}",
   "search": "Suche",
   "searchResults": "{count, plural, =0{Nichts gefunden.} =1{1 Notiz gefunden.} other{{count} Notizen gefunden.}}",
-  "clearSearch": "Leeren"
+  "clearSearch": "Leeren",
+  "addFiles": "Dateien hinzufügen…",
+  "noTextFound": "Darin wurde kein Text gefunden.",
+  "readingText": "Der Text wird gelesen…"
 }

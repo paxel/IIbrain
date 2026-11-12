@@ -5,6 +5,7 @@ pub mod brain;
 pub mod core;
 pub mod device;
 pub mod error;
+pub mod extract;
 pub mod index;
 
 pub use crate::brain::{Attachment, Brain, Capture, Folder, INBOX, Note};

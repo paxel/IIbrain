@@ -2,6 +2,8 @@
 //! beside them, the opened Note, and the dialogs over them.
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use egui::{RichText, Ui};
@@ -11,13 +13,16 @@ use crate::l10n::L10n;
 
 /// Asks the person for a folder; `None` when they cancel.
 pub type PickFolder = Box<dyn FnMut() -> Option<PathBuf>>;
+/// Asks the person for files; none when they cancel.
+pub type PickFiles = Box<dyn FnMut() -> Vec<PathBuf>>;
 
 /// What lies over the window and waits for the person.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Dialog {
-    /// A typed Capture.
+    /// A Capture: typed text, files, or both.
     Capture {
         text: String,
+        files: Vec<PathBuf>,
     },
     /// A Note's text, being edited.
     EditText {
@@ -59,6 +64,12 @@ pub struct App {
     pub(crate) search: String,
     refreshed: Instant,
     pick_folder: PickFolder,
+    pick_files: PickFiles,
+    /// Whether Extracted Text is read beside the window; a test reads
+    /// it at once instead.
+    beside: bool,
+    /// Whether a reading beside the window is under way.
+    reading: Arc<AtomicBool>,
 }
 
 impl App {
@@ -80,6 +91,9 @@ impl App {
             search: String::new(),
             refreshed: Instant::now(),
             pick_folder: Box::new(|| rfd::FileDialog::new().pick_folder()),
+            pick_files: Box::new(|| rfd::FileDialog::new().pick_files().unwrap_or_default()),
+            beside: true,
+            reading: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -87,6 +101,40 @@ impl App {
     pub fn with_folder_picker(mut self, pick: PickFolder) -> Self {
         self.pick_folder = pick;
         self
+    }
+
+    /// Replaces the system's file dialog, for a test.
+    pub fn with_file_picker(mut self, pick: PickFiles) -> Self {
+        self.pick_files = pick;
+        self
+    }
+
+    /// Reads Extracted Text at once instead of beside the window, for a
+    /// test.
+    pub fn reading_at_once(mut self) -> Self {
+        self.beside = false;
+        self
+    }
+
+    /// Reads the Extracted Text of every Attachment that waits for it:
+    /// beside the window, which takes the texts in as they come.
+    pub fn read_waiting_texts(&mut self) {
+        if !self.beside {
+            self.act(|core| core.extract_pending());
+            return;
+        }
+        let Some(brain) = self.core.as_ref().map(|core| core.brain().clone()) else {
+            return;
+        };
+        if self.reading.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        let reading = Arc::clone(&self.reading);
+        std::thread::spawn(move || {
+            let mut engines = iibrain_core::extract::Engines::default();
+            while let Ok(true) = iibrain_core::extract::extract_one(&brain, &mut engines) {}
+            reading.store(false, Ordering::SeqCst);
+        });
     }
 
     pub fn t(&self) -> &L10n {
@@ -214,6 +262,7 @@ impl App {
             if ui.button(self.t.new_note()).clicked() {
                 self.dialog = Some(Dialog::Capture {
                     text: String::new(),
+                    files: Vec::new(),
                 });
             }
             ui.separator();
@@ -434,11 +483,20 @@ impl App {
                     ui.strong(self.t.attachments());
                     for attachment in &note.attachments {
                         ui.label(attachment.name.as_str());
-                        if let Some(text) = attachment.extracted.as_deref()
-                            && !text.is_empty()
-                        {
-                            ui.weak(self.t.extracted_text());
-                            ui.add(egui::Label::new(text).selectable(true));
+                        match attachment.extracted.as_deref() {
+                            Some("") => {
+                                ui.weak(self.t.no_text_found());
+                            }
+                            Some(text) => {
+                                ui.weak(self.t.extracted_text());
+                                ui.add(egui::Label::new(text).selectable(true));
+                            }
+                            None if iibrain_core::extract::kind_of(&attachment.name)
+                                != iibrain_core::extract::Kind::Other =>
+                            {
+                                ui.weak(self.t.reading_text());
+                            }
+                            None => {}
                         }
                     }
                 }
@@ -480,7 +538,7 @@ impl App {
     /// Draws `dialog` and says whether it stays open.
     fn dialog_body(&mut self, ui: &mut Ui, dialog: &mut Dialog) -> bool {
         match dialog {
-            Dialog::Capture { text } => {
+            Dialog::Capture { text, files } => {
                 let label = ui.label(self.t.note_text());
                 ui.add(
                     egui::TextEdit::multiline(text)
@@ -488,18 +546,28 @@ impl App {
                         .desired_width(480.0),
                 )
                 .labelled_by(label.id);
+                if ui.button(self.t.add_files()).clicked() {
+                    files.extend((self.pick_files)());
+                }
+                for file in files.iter() {
+                    let name = file.file_name().unwrap_or(file.as_os_str());
+                    ui.label(name.to_string_lossy());
+                }
                 ui.weak(self.t.phone_only());
-                match self.confirm_row(ui, self.t.save(), !text.trim().is_empty()) {
+                let something = !text.trim().is_empty() || !files.is_empty();
+                match self.confirm_row(ui, self.t.save(), something) {
                     Some(true) => {
                         let capture = Capture {
                             text: text.clone(),
-                            via: "typed".to_string(),
+                            via: if files.is_empty() { "typed" } else { "file" }.to_string(),
+                            files: files.clone(),
                             ..Capture::default()
                         };
                         match self.act(|core| core.capture(&capture)) {
                             Some(id) => {
                                 self.folder = INBOX.to_string();
                                 self.open = Some(id);
+                                self.read_waiting_texts();
                                 false
                             }
                             None => true,

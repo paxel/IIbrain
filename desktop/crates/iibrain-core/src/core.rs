@@ -8,6 +8,7 @@ use chrono::Local;
 use crate::brain::{Brain, Capture, Folder, INBOX, Note};
 use crate::device::Device;
 use crate::error::{Error, Result};
+use crate::extract::{self, Engines};
 use crate::index::{Hit, Index};
 
 const INDEX: &str = "index.sqlite";
@@ -16,6 +17,7 @@ pub struct Core {
     pub(crate) brain: Brain,
     pub(crate) index: Index,
     pub(crate) device: Device,
+    pub(crate) engines: Engines,
 }
 
 impl Core {
@@ -33,6 +35,7 @@ impl Core {
             brain,
             index,
             device,
+            engines: Engines::default(),
         };
         core.refresh()?;
         Ok(core)
@@ -127,6 +130,26 @@ impl Core {
         self.brain.delete(id)?;
         self.refresh()?;
         Ok(())
+    }
+
+    /// Reads the Extracted Text of one Attachment that still waits for
+    /// it; says whether there was one. The apps call this until it
+    /// says no, or run [`extract::extract_one`] beside themselves.
+    pub fn extract_one(&mut self) -> Result<bool> {
+        let read = extract::extract_one(&self.brain, &mut self.engines)?;
+        if read {
+            self.refresh()?;
+        }
+        Ok(read)
+    }
+
+    /// Reads the Extracted Text of every Attachment that waits for it.
+    pub fn extract_pending(&mut self) -> Result<usize> {
+        let mut read = 0;
+        while self.extract_one()? {
+            read += 1;
+        }
+        Ok(read)
     }
 
     pub fn create_folder(&mut self, name: &str) -> Result<()> {

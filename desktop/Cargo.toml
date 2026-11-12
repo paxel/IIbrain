@@ -27,6 +27,33 @@ unimplemented = "deny"
 unreachable = "deny"
 indexing_slicing = "deny"
 
+# RustO is far too slow unoptimised, also in `cargo test`.
+[profile.dev.package.rusto-rs]
+opt-level = 3
+[profile.dev.package.clipper2-rust]
+opt-level = 3
+[profile.dev.package.ndarray]
+opt-level = 3
+[profile.dev.package.rten]
+opt-level = 3
+[profile.dev.package.rten-base]
+opt-level = 3
+[profile.dev.package.rten-gemm]
+opt-level = 3
+[profile.dev.package.rten-parallel]
+opt-level = 3
+[profile.dev.package.rten-simd]
+opt-level = 3
+[profile.dev.package.rten-tensor]
+opt-level = 3
+[profile.dev.package.rten-vecmath]
+opt-level = 3
+# Decoding a photo too.
+[profile.dev.package.image]
+opt-level = 3
+[profile.dev.package.zune-jpeg]
+opt-level = 3
+
 [profile.release]
 strip = true
 lto = "thin"

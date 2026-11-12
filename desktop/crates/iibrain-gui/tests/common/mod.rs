@@ -58,7 +58,9 @@ impl World {
     /// dialog answers with this world's Brain.
     pub fn fresh_app(&self, locale: &str) -> App {
         let brain = self.brain();
-        App::new(&self.device(), locale).with_folder_picker(Box::new(move || Some(brain.clone())))
+        App::new(&self.device(), locale)
+            .with_folder_picker(Box::new(move || Some(brain.clone())))
+            .reading_at_once()
     }
 
     /// The app with this world's Brain open.

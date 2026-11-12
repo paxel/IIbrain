@@ -223,5 +223,17 @@
   "clearSearch": "Clear",
   "@clearSearch": {
     "description": "Button that empties the search field and shows the Folder again."
+  },
+  "addFiles": "Add files…",
+  "@addFiles": {
+    "description": "Button in the capture dialog that picks files to keep as Attachments."
+  },
+  "noTextFound": "No text was found in it.",
+  "@noTextFound": {
+    "description": "Under an Attachment the app read without finding text."
+  },
+  "readingText": "Its text is being read…",
+  "@readingText": {
+    "description": "Under an Attachment whose text the app has not read yet."
   }
 }

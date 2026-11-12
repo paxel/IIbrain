@@ -271,6 +271,23 @@ impl Brain {
         Ok(parts.join("|"))
     }
 
+    /// The Attachments whose text the app reads and has not read yet,
+    /// each as the id of its Note and its name.
+    pub fn waiting_for_text(&self) -> Result<Vec<(String, String)>> {
+        let mut waiting = Vec::new();
+        for id in self.note_ids()? {
+            let (attachments, _) = self.read_files(&id)?;
+            for attachment in attachments {
+                if attachment.extracted.is_none()
+                    && crate::extract::kind_of(&attachment.name) != crate::extract::Kind::Other
+                {
+                    waiting.push((id.clone(), attachment.name));
+                }
+            }
+        }
+        Ok(waiting)
+    }
+
     /// Where an Attachment lies.
     pub fn attachment_path(&self, id: &str, name: &str) -> Result<PathBuf> {
         if name.contains(['/', '\\']) || name.starts_with('.') {
