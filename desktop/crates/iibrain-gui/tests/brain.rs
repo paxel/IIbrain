@@ -2,7 +2,7 @@
 
 mod common;
 
-use common::{TestResult, World, click, harness, shows};
+use common::{TestResult, World, app, click, fresh_app, harness, shows};
 
 #[test]
 fn the_first_start_asks_for_the_folder_and_opens_it() -> TestResult {
@@ -11,7 +11,7 @@ fn the_first_start_asks_for_the_folder_and_opens_it() -> TestResult {
         "Money/tax.md",
         "---\ntitle: Tax return\n---\n\nBefore May.\n",
     );
-    let mut harness = harness(world.fresh_app("en"));
+    let mut harness = harness(fresh_app(&world, "en"));
     assert!(shows(&harness, "Where is your Brain?"));
 
     click(&mut harness, "Choose folder…");
@@ -24,9 +24,9 @@ fn the_first_start_asks_for_the_folder_and_opens_it() -> TestResult {
 fn the_brain_is_remembered_at_the_next_start() -> TestResult {
     let world = World::new();
     world.write("a.md", "# Alpha\n");
-    drop(world.app("en"));
+    drop(app(&world, "en"));
 
-    let harness = harness(world.fresh_app("en"));
+    let harness = harness(fresh_app(&world, "en"));
     assert!(!shows(&harness, "Where is your Brain?"));
     assert!(shows(&harness, "Brain (1)"));
     Ok(())
@@ -41,7 +41,7 @@ fn a_folder_lists_its_notes_and_a_note_opens_with_its_attachments() -> TestResul
     );
     world.write("Money/tax.files/scan.jpg", "jpg");
     world.write("Money/tax.files/scan.jpg.extracted.txt", "total 120 EUR");
-    let mut harness = harness(world.app("en"));
+    let mut harness = harness(app(&world, "en"));
 
     assert!(shows(&harness, "No Notes here."), "the Inbox is empty");
     click(&mut harness, "Money (1)");
@@ -57,7 +57,7 @@ fn a_folder_lists_its_notes_and_a_note_opens_with_its_attachments() -> TestResul
 fn what_another_tool_adds_shows_without_a_restart() -> TestResult {
     let world = World::new();
     world.write("Money/tax.md", "x");
-    let mut harness = harness(world.app("en"));
+    let mut harness = harness(app(&world, "en"));
     assert!(shows(&harness, "Money (1)"));
 
     world.write("Money/receipt.md", "y");
@@ -70,7 +70,7 @@ fn what_another_tool_adds_shows_without_a_restart() -> TestResult {
 #[test]
 fn the_screens_speak_german() -> TestResult {
     let world = World::new();
-    let mut harness = harness(world.fresh_app("de"));
+    let mut harness = harness(fresh_app(&world, "de"));
     assert!(shows(&harness, "Wo liegt dein Brain?"));
     click(&mut harness, "Ordner wählen…");
     assert!(shows(&harness, "Eingang (0)"));

@@ -4,7 +4,7 @@ mod common;
 
 use std::path::PathBuf;
 
-use common::{TestResult, World, click, fill, harness, shows};
+use common::{TestResult, World, app, click, fill, harness, shows};
 
 fn sample(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -15,9 +15,7 @@ fn sample(name: &str) -> PathBuf {
 #[test]
 fn an_added_photo_shows_its_extracted_text_and_is_found_by_it() -> TestResult {
     let world = World::new();
-    let app = world
-        .app("en")
-        .with_file_picker(Box::new(|| vec![sample("german-receipt.jpg")]));
+    let app = app(&world, "en").with_file_picker(Box::new(|| vec![sample("german-receipt.jpg")]));
     let mut harness = harness(app);
 
     click(&mut harness, "New Note");
@@ -39,9 +37,7 @@ fn a_file_without_text_says_so_in_german() -> TestResult {
     let world = World::new();
     let blank = world.dir.path().join("leer.png");
     std::fs::write(&blank, "kein Bild")?;
-    let app = world
-        .app("de")
-        .with_file_picker(Box::new(move || vec![blank.clone()]));
+    let app = app(&world, "de").with_file_picker(Box::new(move || vec![blank.clone()]));
     let mut harness = harness(app);
 
     click(&mut harness, "Neue Notiz");

@@ -31,6 +31,7 @@ rfd = "0.17"
 iibrain-l10n = { path = "../iibrain-l10n", version = "0.1.0" }
 
 [dev-dependencies]
+iibrain-testing = { path = "../iibrain-testing" }
 egui_kittest = "0.35"
 tempfile = "3.10"
 

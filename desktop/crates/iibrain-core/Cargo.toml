@@ -37,6 +37,7 @@ scraper = "0.29"
 lopdf = { version = "0.47", default-features = false }
 
 [dev-dependencies]
+iibrain-testing = { path = "../iibrain-testing" }
 tempfile = "3.10"
 
 [lints]

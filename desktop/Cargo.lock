@@ -2105,6 +2105,7 @@ name = "iibrain-core"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "iibrain-testing",
  "image",
  "lopdf",
  "ndarray",
@@ -2131,6 +2132,7 @@ dependencies = [
  "egui_kittest",
  "iibrain-core",
  "iibrain-l10n",
+ "iibrain-testing",
  "rfd",
  "sys-locale",
  "tempfile",
@@ -2140,6 +2142,15 @@ dependencies = [
 name = "iibrain-l10n"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "iibrain-testing"
+version = "0.1.0"
+dependencies = [
+ "iibrain-core",
  "serde_json",
  "tempfile",
 ]

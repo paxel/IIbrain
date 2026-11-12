@@ -1,0 +1,19 @@
+[package]
+name = "iibrain-testing"
+description = "What the tests of the core and of the desktop app share: a Brain in a temporary directory, and a web server on this machine that stands in for a web page or a Model"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "iibrain_testing"
+
+[dependencies]
+iibrain-core = { path = "../iibrain-core", version = "0.1.0" }
+serde_json = "1.0"
+tempfile = "3.10"
+
+# No workspace lints here: helpers of tests may unwrap, expect, panic and
+# index, as tests may.

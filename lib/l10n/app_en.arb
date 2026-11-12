@@ -251,5 +251,82 @@
   "linkHint": "A link on its own is kept together with the text of its page.",
   "@linkHint": {
     "description": "Hint in the capture dialog."
+  },
+  "models": "Models…",
+  "@models": {
+    "description": "Button that opens the list of connected Models."
+  },
+  "modelsTitle": "Models",
+  "@modelsTitle": {
+    "description": "Title of the dialog with the connected Models."
+  },
+  "noModels": "No Model is connected. IIbrain brings none of its own; without one you capture, file by hand and search.",
+  "@noModels": {
+    "description": "In the Models dialog while it is empty."
+  },
+  "localModel": "Local Model",
+  "@localModel": {
+    "description": "Beside a Model the person declared as running under their own control."
+  },
+  "cloudModel": "Cloud Model",
+  "@cloudModel": {
+    "description": "Beside a Model the person declared as run by someone else."
+  },
+  "remove": "Remove",
+  "@remove": {
+    "description": "Button that removes a Model from this Device."
+  },
+  "connectModel": "Connect a Model",
+  "@connectModel": {
+    "description": "Heading over the fields for a new Model."
+  },
+  "modelName": "Name",
+  "@modelName": {
+    "description": "Label of the field with what the person calls a Model."
+  },
+  "modelAddress": "Address",
+  "@modelAddress": {
+    "description": "Label of the field with the endpoint's base address."
+  },
+  "modelAddressHint": "such as http://localhost:11434/v1",
+  "@modelAddressHint": {
+    "description": "Hint in the empty address field."
+  },
+  "modelKey": "Key",
+  "@modelKey": {
+    "description": "Label of the field with the endpoint's key."
+  },
+  "modelId": "Model at the endpoint",
+  "@modelId": {
+    "description": "Label of the field with the model's name at the endpoint."
+  },
+  "modelIsLocal": "It runs under my own control (Local Model)",
+  "@modelIsLocal": {
+    "description": "Checkbox that declares a new Model local."
+  },
+  "modelStaysHere": "Address and key stay on this device and never enter the Brain's folder.",
+  "@modelStaysHere": {
+    "description": "Under the fields for a new Model."
+  },
+  "testAndAdd": "Test and add",
+  "@testAndAdd": {
+    "description": "Button that tries a new Model's connection and adds it when it answers."
+  },
+  "addUntested": "Add without testing",
+  "@addUntested": {
+    "description": "Button that adds a new Model without trying its connection."
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Closes a dialog that saves as you go."
+  },
+  "errorModel": "The Model did not answer: {reason}",
+  "@errorModel": {
+    "description": "A Model was unreachable, refused, or answered in no known form.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
   }
 }

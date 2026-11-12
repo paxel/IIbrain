@@ -10,6 +10,7 @@ use crate::device::Device;
 use crate::error::{Error, Result};
 use crate::extract::{self, Engines};
 use crate::index::{Hit, Index};
+use crate::model::Model;
 
 const INDEX: &str = "index.sqlite";
 
@@ -98,6 +99,61 @@ impl Core {
     /// text or Extracted Text, best match first.
     pub fn search(&self, query: &str) -> Result<Vec<Hit>> {
         self.index.search(&[query.to_string()], false, 200)
+    }
+
+    // ------------------------------------------------------- models
+
+    /// The Models this Device knows.
+    pub fn models(&self) -> &[Model] {
+        &self.device.settings.models
+    }
+
+    /// The Model that proposes and answers.
+    pub fn chosen_model(&self) -> Option<&Model> {
+        self.device.chosen_model()
+    }
+
+    /// Adds a Model, or replaces the one of the same name. The first
+    /// Model added is the chosen one.
+    pub fn save_model(&mut self, model: Model) -> Result<()> {
+        if model.name.trim().is_empty() || model.address.trim().is_empty() {
+            return Err(Error::Invalid(
+                "a Model needs a name and an address".to_string(),
+            ));
+        }
+        let models = &mut self.device.settings.models;
+        match models.iter_mut().find(|m| m.name == model.name) {
+            Some(known) => *known = model,
+            None => models.push(model),
+        }
+        if self.device.settings.chosen.is_none() {
+            self.device.settings.chosen = self.device.chosen_model().map(|m| m.name.clone());
+        }
+        self.device.save()
+    }
+
+    /// Removes a Model; when it was the chosen one, the first of the
+    /// others is.
+    pub fn remove_model(&mut self, name: &str) -> Result<()> {
+        let settings = &mut self.device.settings;
+        let before = settings.models.len();
+        settings.models.retain(|m| m.name != name);
+        if settings.models.len() == before {
+            return Err(Error::NotFound(name.to_string()));
+        }
+        if settings.chosen.as_deref() == Some(name) {
+            settings.chosen = settings.models.first().map(|m| m.name.clone());
+        }
+        self.device.save()
+    }
+
+    /// Makes the Model `name` the one that proposes and answers.
+    pub fn choose_model(&mut self, name: &str) -> Result<()> {
+        if !self.models().iter().any(|m| m.name == name) {
+            return Err(Error::NotFound(name.to_string()));
+        }
+        self.device.settings.chosen = Some(name.to_string());
+        self.device.save()
     }
 
     // ------------------------------------------------------- writing

@@ -7,6 +7,7 @@ pub mod device;
 pub mod error;
 pub mod extract;
 pub mod index;
+pub mod model;
 pub mod web;
 
 pub use crate::brain::{Attachment, Brain, Capture, Folder, INBOX, Note};
@@ -14,6 +15,7 @@ pub use crate::core::Core;
 pub use crate::device::Device;
 pub use crate::error::{Error, Result};
 pub use crate::index::Hit;
+pub use crate::model::{Message, Model};
 
 /// The version of the apps, the same as the pubspec's.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

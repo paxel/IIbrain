@@ -2,12 +2,12 @@
 
 mod common;
 
-use common::{TestResult, World, click, fill, harness, shows};
+use common::{TestResult, World, app, click, fill, harness, shows};
 
 #[test]
 fn a_typed_note_lands_in_the_inbox_and_is_counted() -> TestResult {
     let world = World::new();
-    let mut harness = harness(world.app("en"));
+    let mut harness = harness(app(&world, "en"));
     assert!(shows(&harness, "Nothing waits Unfiled."));
 
     click(&mut harness, "New Note");
@@ -30,7 +30,7 @@ fn a_typed_note_lands_in_the_inbox_and_is_counted() -> TestResult {
 fn an_unfiled_note_is_filed_by_hand() -> TestResult {
     let world = World::new();
     world.write("Home/keep.md", "x");
-    let mut harness = harness(world.app("en"));
+    let mut harness = harness(app(&world, "en"));
     click(&mut harness, "New Note");
     fill(&mut harness, "Text", "Call the plumber.");
     click(&mut harness, "Save");
@@ -54,7 +54,7 @@ fn an_unfiled_note_is_filed_by_hand() -> TestResult {
 fn a_note_is_edited_and_deleted() -> TestResult {
     let world = World::new();
     world.write("Home/Plumber.md", "---\ntitle: Plumber\n---\n\nold");
-    let mut harness = harness(world.app("en"));
+    let mut harness = harness(app(&world, "en"));
     click(&mut harness, "Home (1)");
     click(&mut harness, "Plumber");
 
@@ -76,7 +76,7 @@ fn a_note_is_edited_and_deleted() -> TestResult {
 #[test]
 fn folders_are_made_renamed_and_removed() -> TestResult {
     let world = World::new();
-    let mut harness = harness(world.app("en"));
+    let mut harness = harness(app(&world, "en"));
     assert!(!shows(&harness, "Rename…"), "the Inbox is fixed");
 
     click(&mut harness, "New Folder…");
@@ -99,7 +99,7 @@ fn folders_are_made_renamed_and_removed() -> TestResult {
 fn a_folder_that_holds_notes_is_not_removed() -> TestResult {
     let world = World::new();
     world.write("Home/keep.md", "x");
-    let mut harness = harness(world.app("de"));
+    let mut harness = harness(app(&world, "de"));
     click(&mut harness, "Home (1)");
     click(&mut harness, "Entfernen");
     assert!(world.exists("Home/keep.md"));

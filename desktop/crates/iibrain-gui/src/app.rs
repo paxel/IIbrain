@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use egui::{RichText, Ui};
-use iibrain_core::{Capture, Core, Device, Error, Folder, INBOX, Note};
+use iibrain_core::{Capture, Core, Device, Error, Folder, INBOX, Model, Note};
 
 use crate::l10n::L10n;
 
@@ -45,6 +45,14 @@ pub(crate) enum Dialog {
     RenameFolder {
         from: String,
         name: String,
+    },
+    /// The connected Models, and the fields for a new one.
+    Models {
+        name: String,
+        address: String,
+        key: String,
+        model: String,
+        local: bool,
     },
 }
 
@@ -263,6 +271,15 @@ impl App {
                 self.dialog = Some(Dialog::Capture {
                     text: String::new(),
                     files: Vec::new(),
+                });
+            }
+            if ui.button(self.t.models()).clicked() {
+                self.dialog = Some(Dialog::Models {
+                    name: String::new(),
+                    address: String::new(),
+                    key: String::new(),
+                    model: String::new(),
+                    local: false,
                 });
             }
             ui.separator();
@@ -535,6 +552,7 @@ impl App {
             Dialog::ConfirmDelete { .. } => self.t.delete(),
             Dialog::NewFolder { .. } => self.t.new_folder_title(),
             Dialog::RenameFolder { .. } => self.t.rename_folder_title(),
+            Dialog::Models { .. } => self.t.models_title(),
         };
         let mut keep = true;
         egui::Window::new(title)
@@ -712,6 +730,111 @@ impl App {
                     None => true,
                 }
             }
+            Dialog::Models {
+                name,
+                address,
+                key,
+                model,
+                local,
+            } => {
+                let models: Vec<Model> = self
+                    .core
+                    .as_ref()
+                    .map(|core| core.models().to_vec())
+                    .unwrap_or_default();
+                let chosen = self
+                    .core
+                    .as_ref()
+                    .and_then(|core| core.chosen_model())
+                    .map(|m| m.name.clone());
+                if models.is_empty() {
+                    ui.set_max_width(460.0);
+                    ui.label(self.t.no_models());
+                }
+                for known in &models {
+                    ui.horizontal(|ui| {
+                        let is_chosen = chosen.as_deref() == Some(known.name.as_str());
+                        if ui.radio(is_chosen, known.name.as_str()).clicked() {
+                            self.act(|core| core.choose_model(&known.name));
+                        }
+                        ui.weak(if known.local {
+                            self.t.local_model()
+                        } else {
+                            self.t.cloud_model()
+                        });
+                        if ui.small_button(self.t.remove()).clicked() {
+                            self.act(|core| core.remove_model(&known.name));
+                        }
+                    });
+                }
+                ui.separator();
+                ui.strong(self.t.connect_model());
+                egui::Grid::new("model").num_columns(2).show(ui, |ui| {
+                    let label = ui.label(self.t.model_name());
+                    ui.add(egui::TextEdit::singleline(name).desired_width(320.0))
+                        .labelled_by(label.id);
+                    ui.end_row();
+                    let label = ui.label(self.t.model_address());
+                    ui.add(
+                        egui::TextEdit::singleline(address)
+                            .hint_text(self.t.model_address_hint())
+                            .desired_width(320.0),
+                    )
+                    .labelled_by(label.id);
+                    ui.end_row();
+                    let label = ui.label(self.t.model_key());
+                    ui.add(
+                        egui::TextEdit::singleline(key)
+                            .password(true)
+                            .desired_width(320.0),
+                    )
+                    .labelled_by(label.id);
+                    ui.end_row();
+                    let label = ui.label(self.t.model_id());
+                    ui.add(egui::TextEdit::singleline(model).desired_width(320.0))
+                        .labelled_by(label.id);
+                    ui.end_row();
+                });
+                ui.checkbox(local, self.t.model_is_local());
+                ui.weak(self.t.model_stays_here());
+                ui.add_space(8.0);
+                let mut keep = true;
+                ui.horizontal(|ui| {
+                    let filled = !name.trim().is_empty() && !address.trim().is_empty();
+                    let new = Model {
+                        name: name.trim().to_string(),
+                        address: address.trim().to_string(),
+                        key: (!key.trim().is_empty()).then(|| key.trim().to_string()),
+                        model: model.trim().to_string(),
+                        local: *local,
+                    };
+                    let test = ui
+                        .add_enabled(filled, egui::Button::new(self.t.test_and_add()))
+                        .clicked();
+                    let untested = ui
+                        .add_enabled(filled, egui::Button::new(self.t.add_untested()))
+                        .clicked();
+                    if test || untested {
+                        let added = self.act(|core| {
+                            if test {
+                                new.test()?;
+                            }
+                            core.save_model(new.clone())
+                        });
+                        if added.is_some() {
+                            name.clear();
+                            address.clear();
+                            key.clear();
+                            model.clear();
+                            *local = false;
+                        }
+                    }
+                    if ui.button(self.t.close()).clicked() {
+                        keep = false;
+                    }
+                });
+                keep
+            }
             Dialog::RenameFolder { from, name } => {
                 let label = ui.label(self.t.folder_name());
                 ui.add(egui::TextEdit::singleline(name).desired_width(320.0))
@@ -782,6 +905,7 @@ pub(crate) fn error_text(t: &L10n, error: &Error) -> String {
         Error::Io(e) => t.error_file(&e.to_string()),
         Error::NotFound(what) => t.error_not_found(what),
         Error::Invalid(reason) => t.error_not_possible(reason),
+        Error::Model(reason) => t.error_model(reason),
         other => t.error_other(&other.to_string()),
     }
 }

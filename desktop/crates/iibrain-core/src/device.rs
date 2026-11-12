@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
+use crate::model::Model;
 
 const FILE: &str = "device.json";
 
@@ -17,6 +18,10 @@ const FILE: &str = "device.json";
 pub struct Settings {
     /// The folder that is the Brain, once the person chose one.
     pub brain: Option<PathBuf>,
+    /// The Models this Device knows, with their addresses and keys.
+    pub models: Vec<Model>,
+    /// The name of the Model that proposes and answers.
+    pub chosen: Option<String>,
 }
 
 /// One installation of IIbrain.
@@ -52,5 +57,15 @@ impl Device {
             .map_err(|e| Error::Unreadable(e.to_string()))?;
         fs::write(self.dir.join(FILE), text)?;
         Ok(())
+    }
+
+    /// The Model that proposes and answers: the chosen one, or the
+    /// only one.
+    pub fn chosen_model(&self) -> Option<&Model> {
+        let models = &self.settings.models;
+        models
+            .iter()
+            .find(|m| Some(&m.name) == self.settings.chosen.as_ref())
+            .or_else(|| models.first())
     }
 }

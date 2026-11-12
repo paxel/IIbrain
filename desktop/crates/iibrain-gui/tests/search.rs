@@ -2,7 +2,7 @@
 
 mod common;
 
-use common::{TestResult, World, click, fill, harness, shows};
+use common::{TestResult, World, app, click, fill, harness, shows};
 
 fn world() -> World {
     let world = World::new();
@@ -19,7 +19,7 @@ fn world() -> World {
 
 #[test]
 fn typed_words_list_the_notes_that_hold_them_with_an_excerpt() -> TestResult {
-    let mut harness = harness(world().app("en"));
+    let mut harness = harness(app(&world(), "en"));
     fill(&mut harness, "Search", "boiler");
     assert!(shows(&harness, "1 Note found."));
     assert!(shows(&harness, "boiler in the cellar leaks"));
@@ -31,7 +31,7 @@ fn typed_words_list_the_notes_that_hold_them_with_an_excerpt() -> TestResult {
 
 #[test]
 fn nothing_found_is_said_and_clearing_shows_the_folder_again() -> TestResult {
-    let mut harness = harness(world().app("de"));
+    let mut harness = harness(app(&world(), "de"));
     fill(&mut harness, "Suche", "U-Boot");
     assert!(shows(&harness, "Nichts gefunden."));
 
