@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support.dart';
 
-Future<void> _openAsk(WidgetTester tester) async {
-  await tester.tap(find.widgetWithText(NavigationDestination, 'Ask'));
+Future<void> _openAsk(WidgetTester tester, {String tab = 'Ask'}) async {
+  await tester.tap(find.widgetWithText(NavigationDestination, tab));
   await tester.pumpAndSettle();
 }
 
@@ -65,7 +65,7 @@ void main() {
     final core = brain();
     final phone = FakePhone();
     await pumpApp(tester, core, phone: phone, locale: 'de');
-    await _openAsk(tester);
+    await _openAsk(tester, tab: 'Fragen');
     await tapText(tester, 'Kontakte');
     await fill(tester, 'Frage', 'Wie erreiche ich Max Brandt?');
     await tester.tap(find.widgetWithText(FilledButton, 'Fragen'));
