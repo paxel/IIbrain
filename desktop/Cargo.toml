@@ -1,0 +1,31 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/iibrain-core",
+    "crates/iibrain-gui",
+]
+
+# The version equals the pubspec's (a test in iibrain-core checks it).
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/paxel/IIbrain"
+
+# No unsafe and no panics. Tests may unwrap, expect, panic and index
+# (clippy.toml).
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+indexing_slicing = "deny"
+
+[profile.release]
+strip = true
+lto = "thin"

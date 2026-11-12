@@ -1,0 +1,14 @@
+[package]
+name = "iibrain-core"
+description = "Core of IIbrain, shared by the phone app and the desktop app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "iibrain_core"
+
+[lints]
+workspace = true

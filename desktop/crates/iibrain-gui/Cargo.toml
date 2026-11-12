@@ -1,0 +1,18 @@
+[package]
+name = "iibrain-gui"
+description = "The IIbrain desktop app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "iibrain"
+path = "src/bin/iibrain.rs"
+
+[dependencies]
+iibrain-core = { path = "../iibrain-core", version = "0.1.0" }
+
+[lints]
+workspace = true
