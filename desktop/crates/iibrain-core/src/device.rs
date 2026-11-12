@@ -22,6 +22,11 @@ pub struct Settings {
     pub models: Vec<Model>,
     /// The name of the Model that proposes and answers.
     pub chosen: Option<String>,
+    /// Whether what a Live Lookup read in the calendar may go to a
+    /// Cloud Model; at the start it goes to Local Models only.
+    pub calendar_to_cloud: bool,
+    /// The same for the contacts.
+    pub contacts_to_cloud: bool,
 }
 
 /// One installation of IIbrain.

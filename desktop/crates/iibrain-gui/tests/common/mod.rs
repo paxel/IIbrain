@@ -12,7 +12,7 @@
 )]
 
 use egui_kittest::Harness;
-use egui_kittest::kittest::{NodeT, Queryable};
+pub use egui_kittest::kittest::{NodeT, Queryable};
 use iibrain_gui::App;
 
 pub use iibrain_testing::{Reply, Server, TestResult, World, model, model_server, sent_to};

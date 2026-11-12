@@ -1,6 +1,7 @@
 //! The IIbrain desktop app: the screens over the core.
 
 pub mod app;
+mod ask_view;
 pub mod job;
 pub mod l10n;
 

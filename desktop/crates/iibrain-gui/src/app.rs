@@ -7,8 +7,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use egui::{RichText, Ui};
-use iibrain_core::{Capture, Core, Device, Error, Folder, INBOX, Model, Note, Proposal};
+use iibrain_core::{Answer, Capture, Core, Device, Error, Folder, INBOX, Model, Note, Proposal};
 
+use crate::ask_view::Asked;
 use crate::job::Job;
 use crate::l10n::L10n;
 
@@ -57,6 +58,19 @@ pub(crate) enum Dialog {
     },
 }
 
+impl Dialog {
+    /// The Models dialog with empty fields for a new Model.
+    pub(crate) fn new_model() -> Self {
+        Dialog::Models {
+            name: String::new(),
+            address: String::new(),
+            key: String::new(),
+            model: String::new(),
+            local: false,
+        }
+    }
+}
+
 pub struct App {
     pub(crate) t: L10n,
     device_dir: PathBuf,
@@ -76,13 +90,19 @@ pub struct App {
     pick_files: PickFiles,
     /// Whether Extracted Text is read beside the window; a test reads
     /// it at once instead.
-    beside: bool,
+    pub(crate) beside: bool,
     /// Whether a reading beside the window is under way.
     reading: Arc<AtomicBool>,
     /// The Proposal the filing dialog waits for.
     proposing: Option<Job<Proposal>>,
     /// The Model whose Proposal fills the filing dialog.
     proposed_by: Option<String>,
+    /// Whether the ask screen shows in place of the opened Note.
+    pub(crate) ask_view: bool,
+    pub(crate) question: String,
+    /// The Answer the ask screen waits for.
+    pub(crate) asking: Option<Job<Answer>>,
+    pub(crate) asked: Option<Asked>,
 }
 
 impl App {
@@ -109,6 +129,10 @@ impl App {
             reading: Arc::new(AtomicBool::new(false)),
             proposing: None,
             proposed_by: None,
+            ask_view: false,
+            question: String::new(),
+            asking: None,
+            asked: None,
         }
     }
 
@@ -164,6 +188,14 @@ impl App {
 
     pub fn core(&self) -> Option<&Core> {
         self.core.as_ref()
+    }
+
+    /// What the ask screen shows as the last Answer.
+    pub fn answer(&self) -> Option<&Answer> {
+        match &self.asked {
+            Some(Asked::Answer(answer)) => Some(answer),
+            _ => None,
+        }
     }
 
     /// The id of the Note that is open.
@@ -245,7 +277,13 @@ impl App {
             .resizable(true)
             .default_size(300.0)
             .show(ui, |ui| self.show_notes(ui));
-        egui::CentralPanel::default().show(ui, |ui| self.show_note(ui));
+        egui::CentralPanel::default().show(ui, |ui| {
+            if self.ask_view {
+                self.show_ask(ui);
+            } else {
+                self.show_note(ui);
+            }
+        });
         self.show_dialog(ui);
     }
 
@@ -286,14 +324,16 @@ impl App {
                     files: Vec::new(),
                 });
             }
+            let toggle = if self.ask_view {
+                self.t.back_to_notes()
+            } else {
+                self.t.ask()
+            };
+            if ui.button(toggle).clicked() {
+                self.ask_view = !self.ask_view;
+            }
             if ui.button(self.t.models()).clicked() {
-                self.dialog = Some(Dialog::Models {
-                    name: String::new(),
-                    address: String::new(),
-                    key: String::new(),
-                    model: String::new(),
-                    local: false,
-                });
+                self.dialog = Some(Dialog::new_model());
             }
             ui.separator();
             let label = ui.label(self.t.search());
@@ -412,6 +452,7 @@ impl App {
                     if ui.add(egui::Button::selectable(chosen, label)).clicked() {
                         self.folder = name;
                         self.open = None;
+                        self.ask_view = false;
                     }
                 }
             });
@@ -488,7 +529,11 @@ impl App {
                     } else {
                         list_title(&note)
                     };
-                    if ui.add(egui::Button::selectable(chosen, title)).clicked() {
+                    let clicked = ui.add(egui::Button::selectable(chosen, title)).clicked();
+                    if clicked {
+                        self.ask_view = false;
+                    }
+                    if clicked {
                         self.open = Some(note.id);
                     }
                 }

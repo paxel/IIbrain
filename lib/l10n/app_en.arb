@@ -399,5 +399,47 @@
         "type": "String"
       }
     }
+  },
+  "ask": "Ask",
+  "@ask": {
+    "description": "Button that opens the ask screen, and the button that sends a Question."
+  },
+  "askTitle": "Ask your Brain",
+  "@askTitle": {
+    "description": "Heading of the ask screen."
+  },
+  "questionLabel": "Question",
+  "@questionLabel": {
+    "description": "Label of the field for a Question."
+  },
+  "backToNotes": "Back to the Notes",
+  "@backToNotes": {
+    "description": "Button that leaves the ask screen."
+  },
+  "nothingFits": "Nothing in your Brain fits this Question. No Model was asked.",
+  "@nothingFits": {
+    "description": "On the ask screen when the search found no Note for a Question."
+  },
+  "answerBy": "Answer by {model}, from the Sources below alone:",
+  "@answerBy": {
+    "description": "Over an Answer.",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "sources": "Sources",
+  "@sources": {
+    "description": "Heading over the Notes an Answer was made from."
+  },
+  "privateLeftOut": "{count, plural, =1{1 Private Note was left out, because your Model is a Cloud Model. The Answer may be incomplete.} other{{count} Private Notes were left out, because your Model is a Cloud Model. The Answer may be incomplete.}}",
+  "@privateLeftOut": {
+    "description": "On the ask screen when Private Notes fitted the Question but were not sent to a Cloud Model.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
