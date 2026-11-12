@@ -55,6 +55,8 @@ pub struct App {
     /// The Note that is open.
     pub(crate) open: Option<String>,
     pub(crate) dialog: Option<Dialog>,
+    /// What the person searches for; empty shows the chosen Folder.
+    pub(crate) search: String,
     refreshed: Instant,
     pick_folder: PickFolder,
 }
@@ -75,6 +77,7 @@ impl App {
             folder: INBOX.to_string(),
             open: None,
             dialog: None,
+            search: String::new(),
             refreshed: Instant::now(),
             pick_folder: Box::new(|| rfd::FileDialog::new().pick_folder()),
         }
@@ -214,6 +217,13 @@ impl App {
                 });
             }
             ui.separator();
+            let label = ui.label(self.t.search());
+            ui.add(egui::TextEdit::singleline(&mut self.search).desired_width(240.0))
+                .labelled_by(label.id);
+            if !self.search.is_empty() && ui.button(self.t.clear_search()).clicked() {
+                self.search.clear();
+            }
+            ui.separator();
             let root = self
                 .core
                 .as_ref()
@@ -297,7 +307,40 @@ impl App {
             });
     }
 
+    fn show_hits(&mut self, ui: &mut Ui) {
+        ui.strong(self.t.search());
+        let hits = self
+            .core
+            .as_ref()
+            .and_then(|core| core.search(&self.search).ok())
+            .unwrap_or_default();
+        ui.weak(
+            self.t
+                .search_results(i64::try_from(hits.len()).unwrap_or(i64::MAX)),
+        );
+        egui::ScrollArea::vertical()
+            .id_salt("hits")
+            .auto_shrink(false)
+            .show(ui, |ui| {
+                for hit in hits {
+                    let chosen = self.open.as_deref() == Some(hit.id.as_str());
+                    if ui
+                        .add(egui::Button::selectable(chosen, hit.title.as_str()))
+                        .clicked()
+                    {
+                        self.open = Some(hit.id);
+                    }
+                    ui.weak(hit.excerpt.as_str());
+                    ui.add_space(4.0);
+                }
+            });
+    }
+
     fn show_notes(&mut self, ui: &mut Ui) {
+        if !self.search.trim().is_empty() {
+            self.show_hits(ui);
+            return;
+        }
         ui.strong(self.folder_name(&self.folder));
         let notes: Vec<Note> = self
             .core

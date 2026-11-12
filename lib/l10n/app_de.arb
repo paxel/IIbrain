@@ -42,5 +42,8 @@
   "errorNotPossible": "Das geht nicht: {reason}",
   "errorNotFound": "Nicht gefunden: {what}",
   "errorFile": "Eine Datei ließ sich nicht lesen oder schreiben: {reason}",
-  "errorOther": "Etwas ging schief: {reason}"
+  "errorOther": "Etwas ging schief: {reason}",
+  "search": "Suche",
+  "searchResults": "{count, plural, =0{Nichts gefunden.} =1{1 Notiz gefunden.} other{{count} Notizen gefunden.}}",
+  "clearSearch": "Leeren"
 }

@@ -8,7 +8,7 @@ use chrono::Local;
 use crate::brain::{Brain, Capture, Folder, INBOX, Note};
 use crate::device::Device;
 use crate::error::{Error, Result};
-use crate::index::Index;
+use crate::index::{Hit, Index};
 
 const INDEX: &str = "index.sqlite";
 
@@ -89,6 +89,12 @@ impl Core {
     /// How many Notes wait Unfiled.
     pub fn unfiled(&self) -> Result<usize> {
         Ok(self.notes(INBOX)?.len())
+    }
+
+    /// The Notes that hold every word of `query`, in their title, tags,
+    /// text or Extracted Text, best match first.
+    pub fn search(&self, query: &str) -> Result<Vec<Hit>> {
+        self.index.search(&[query.to_string()], false, 200)
     }
 
     // ------------------------------------------------------- writing
