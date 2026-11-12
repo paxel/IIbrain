@@ -1,0 +1,123 @@
+# Builds what a release needs when a version tag is pushed: the desktop app
+# for Linux, macOS and Windows in the forms the Homebrew tap and the Scoop
+# bucket take, the phone app as an APK, and the rendered channel files. All
+# of it lands in a draft release; nothing here holds a signing key or writes
+# to the tap, the bucket or the F-Droid repository.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    name: Draft release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: The tag is the version of the apps
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          grep -q "^version: $version+" pubspec.yaml
+          grep -q "^version = \"$version\"" desktop/Cargo.toml
+          grep -q "^## \[$version\]" CHANGELOG.md
+      - name: Create the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --verify-tag --title "$GITHUB_REF_NAME" --notes "See CHANGELOG.md."
+
+  desktop:
+    name: Desktop (${{ matrix.name }})
+    needs: draft
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x86_64, runner: ubuntu-latest, os: linux, arch: x86_64, target: x86_64-unknown-linux-gnu }
+          - { name: linux-arm64, runner: ubuntu-24.04-arm, os: linux, arch: arm64, target: aarch64-unknown-linux-gnu }
+          - { name: macos-arm64, runner: macos-latest, os: macos, arch: arm64, target: aarch64-apple-darwin }
+          - { name: macos-x86_64, runner: macos-latest, os: macos, arch: x86_64, target: x86_64-apple-darwin }
+          - { name: windows-x86_64, runner: windows-latest, os: windows, arch: x86_64, target: x86_64-pc-windows-msvc }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch, 2026-10-16
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build
+        working-directory: desktop
+        run: cargo build --release --locked -p iibrain-gui --target ${{ matrix.target }}
+      - name: Pack (Linux, macOS)
+        if: matrix.os != 'windows'
+        run: >
+          desktop/packaging/${{ matrix.os }}/pack.sh "${GITHUB_REF_NAME#v}" ${{ matrix.arch }}
+          desktop/target/${{ matrix.target }}/release/iibrain dist
+      - name: Pack (Windows)
+        if: matrix.os == 'windows'
+        shell: pwsh
+        run: >
+          desktop/packaging/windows/pack.ps1 -Version ($env:GITHUB_REF_NAME -replace '^v', '')
+          -Binary desktop/target/${{ matrix.target }}/release/iibrain.exe -Dist dist
+      - name: Upload to the draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+
+  phone:
+    name: Phone (APK)
+    needs: draft
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch, 2026-10-16
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi
+      - name: cargo-ndk, which builds the core into the APK
+        run: cargo install cargo-ndk --locked
+      # Not signed with a release key: that key is the maintainer's, and
+      # signing is their step.
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build apk --release --split-per-abi
+      - name: Upload to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            abi="$(basename "$apk" | sed 's/^app-//; s/-release\.apk$//')"
+            cp "$apk" "iibrain-$version-android-$abi-unsigned.apk"
+          done
+          gh release upload "$GITHUB_REF_NAME" iibrain-*-unsigned.apk --clobber
+
+  channels:
+    name: Formula, cask and Scoop manifest
+    needs: desktop
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Render from the built packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh release download "$GITHUB_REF_NAME" --dir dist --pattern 'iibrain-*'
+          desktop/packaging/render-channels.sh "$version" dist channels
+          gh release upload "$GITHUB_REF_NAME" channels/* --clobber

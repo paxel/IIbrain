@@ -1,0 +1,13 @@
+IIbrain keeps what matters to you in one place and lets you ask it later.
+
+Your Brain is a folder of Markdown files with their attachments beside them. Any other tool can read it. IIbrain never syncs it: a sync tool of your choice carries the folder between your phone and your computers.
+
+Capture from anywhere: typed text, the camera, files, links, anything shared from another app, and Print Capture, which works even in apps that block copying and sharing: choose IIbrain as the printer. Text in photos, scanned pages and PDFs is read on the device and can be searched.
+
+IIbrain brings no language model. Connect one of your own through an OpenAI-compatible endpoint, in the cloud or at home, and declare it local or cloud. A model proposes title, tags and folder for a new capture, and you confirm. Ask a question and get an answer made only from your own notes, with its sources listed.
+
+Notes and folders marked Private reach only a model you declared local.
+
+IIbrain asks for access to all files, because your Brain is a folder in the phone's storage that your sync tool also writes to. It uses the access for that folder only.
+
+No account, no server. Free and open source.

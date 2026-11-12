@@ -1,0 +1,13 @@
+IIbrain bewahrt an einem Ort auf, was dir wichtig ist, und lässt dich später danach fragen.
+
+Dein Brain ist ein Ordner mit Markdown-Dateien, die Anhänge liegen daneben. Jedes andere Werkzeug kann ihn lesen. IIbrain synchronisiert ihn nie: Ein Sync-Werkzeug deiner Wahl gleicht den Ordner zwischen Telefon und Rechnern ab.
+
+Erfasse von überall: getippter Text, Kamera, Dateien, Links, alles, was eine andere App teilt, und die Druck-Erfassung, die auch in Apps geht, die Kopieren und Teilen sperren: Wähle IIbrain als Drucker. Text in Fotos, gescannten Seiten und PDFs wird auf dem Gerät gelesen und lässt sich durchsuchen.
+
+IIbrain bringt kein Sprachmodell mit. Verbinde ein eigenes über einen OpenAI-kompatiblen Endpunkt, in der Cloud oder zu Hause, und gib an, ob es lokal oder ein Cloud-Modell ist. Ein Modell schlägt Titel, Tags und Ordner für eine neue Erfassung vor, und du bestätigst. Stelle eine Frage und erhalte eine Antwort allein aus deinen eigenen Notizen, mit ihren Quellen.
+
+Als privat markierte Notizen und Ordner erreichen nur ein Modell, das du als lokal angegeben hast.
+
+IIbrain bittet um Zugriff auf alle Dateien, weil dein Brain ein Ordner im Speicher des Telefons ist, in den auch dein Sync-Werkzeug schreibt. Es nutzt den Zugriff nur für diesen Ordner.
+
+Kein Konto, kein Server. Frei und quelloffen.

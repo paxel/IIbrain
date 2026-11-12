@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=IIbrain
+Comment=A private second brain of plain Markdown files.
+Exec=iibrain
+Icon=iibrain
+Terminal=false
+Type=Application
+Categories=Office;Utility;
+# The running window carries this app id (set in the desktop binary). On
+# Wayland the compositor finds this entry by its file name, which is why
+# the file is called io.github.paxel.iibrain.desktop; on X11 it matches
+# the window class below instead.
+StartupWMClass=io.github.paxel.iibrain

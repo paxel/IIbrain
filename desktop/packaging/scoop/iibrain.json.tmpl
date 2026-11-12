@@ -1,0 +1,21 @@
+{
+    "version": "{{VERSION}}",
+    "description": "Private second brain of plain Markdown files",
+    "homepage": "https://github.com/paxel/IIbrain",
+    "license": "Apache-2.0 OR MIT",
+    "url": "https://github.com/paxel/IIbrain/releases/download/v{{VERSION}}/iibrain-{{VERSION}}-windows-x86_64.zip",
+    "hash": "{{SHA_WINDOWS_X86_64}}",
+    "bin": "iibrain.exe",
+    "shortcuts": [
+        [
+            "iibrain.exe",
+            "IIbrain"
+        ]
+    ],
+    "checkver": {
+        "github": "https://github.com/paxel/IIbrain"
+    },
+    "autoupdate": {
+        "url": "https://github.com/paxel/IIbrain/releases/download/v$version/iibrain-$version-windows-x86_64.zip"
+    }
+}

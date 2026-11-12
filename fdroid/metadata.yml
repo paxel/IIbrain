@@ -1,0 +1,10 @@
+# F-Droid fields that fastlane's layout has no place for. The texts come
+# from fastlane/metadata.
+AuthorName: paxel
+Categories:
+  - Writing
+License: Apache-2.0 OR MIT
+WebSite: https://github.com/paxel/IIbrain
+SourceCode: https://github.com/paxel/IIbrain
+IssueTracker: https://github.com/paxel/IIbrain/issues
+Changelog: https://github.com/paxel/IIbrain/blob/HEAD/CHANGELOG.md

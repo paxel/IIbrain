@@ -1,0 +1,66 @@
+# Every check of a commit: formats, analyzers, linters and all tests of the
+# phone app, the desktop app and the core.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Read-only by default; a job that writes asks for more itself.
+permissions:
+  contents: read
+
+jobs:
+  phone:
+    name: Phone (Flutter)
+    # A pull request from a branch of this repository was checked by its push.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      # The generated lib/l10n/app_localizations*.dart are committed; the
+      # runner regenerates them, so a stale copy would pass unseen.
+      - name: The generated localizations are current
+        run: |
+          flutter pub get
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n
+          test -z "$(git status --porcelain -- lib/l10n)"
+      - name: No untranslated strings
+        run: test "$(tr -d '[:space:]' < build/untranslated.json)" = "{}"
+      - name: Analyze and test
+        run: |
+          flutter analyze --fatal-infos
+          flutter test
+      - name: Dart format
+        run: dart format --output=none --set-exit-if-changed lib test
+
+  desktop:
+    name: Desktop and core (Rust)
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    runs-on: ubuntu-latest
+    # Line tables keep backtraces readable without filling the runner's disk.
+    env:
+      CARGO_PROFILE_DEV_DEBUG: line-tables-only
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch, 2026-10-16
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: desktop
+      - name: Format, lint and test
+        working-directory: desktop
+        run: |
+          cargo fmt --check
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+      - name: The third-party list is current
+        run: |
+          python3 tool/notices.py
+          git diff --exit-code -- THIRD-PARTY-NOTICES.md
