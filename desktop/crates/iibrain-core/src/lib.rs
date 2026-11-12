@@ -6,6 +6,7 @@ pub mod core;
 pub mod device;
 pub mod error;
 pub mod extract;
+pub mod filing;
 pub mod index;
 pub mod model;
 pub mod privacy;
@@ -15,6 +16,7 @@ pub use crate::brain::{Attachment, Brain, Capture, Folder, INBOX, Note};
 pub use crate::core::Core;
 pub use crate::device::Device;
 pub use crate::error::{Error, Result};
+pub use crate::filing::{Proposal, ProposalRequest};
 pub use crate::index::Hit;
 pub use crate::model::{Message, Model};
 

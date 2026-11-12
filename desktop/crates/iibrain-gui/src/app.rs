@@ -7,8 +7,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use egui::{RichText, Ui};
-use iibrain_core::{Capture, Core, Device, Error, Folder, INBOX, Model, Note};
+use iibrain_core::{Capture, Core, Device, Error, Folder, INBOX, Model, Note, Proposal};
 
+use crate::job::Job;
 use crate::l10n::L10n;
 
 /// Asks the person for a folder; `None` when they cancel.
@@ -78,6 +79,10 @@ pub struct App {
     beside: bool,
     /// Whether a reading beside the window is under way.
     reading: Arc<AtomicBool>,
+    /// The Proposal the filing dialog waits for.
+    proposing: Option<Job<Proposal>>,
+    /// The Model whose Proposal fills the filing dialog.
+    proposed_by: Option<String>,
 }
 
 impl App {
@@ -102,6 +107,8 @@ impl App {
             pick_files: Box::new(|| rfd::FileDialog::new().pick_files().unwrap_or_default()),
             beside: true,
             reading: Arc::new(AtomicBool::new(false)),
+            proposing: None,
+            proposed_by: None,
         }
     }
 
@@ -143,6 +150,12 @@ impl App {
             while let Ok(true) = iibrain_core::extract::extract_one(&brain, &mut engines) {}
             reading.store(false, Ordering::SeqCst);
         });
+    }
+
+    /// Adds `model` to this Device without trying its connection, and
+    /// says whether that worked.
+    pub fn connect(&mut self, model: Model) -> bool {
+        self.act(|core| core.save_model(model)).is_some()
     }
 
     pub fn t(&self) -> &L10n {
@@ -309,6 +322,17 @@ impl App {
             "" => self.t.brain_root().to_string(),
             INBOX => self.t.inbox().to_string(),
             other => other.to_string(),
+        }
+    }
+
+    /// A Folder's name in the choice of a Note's Folder: one that
+    /// does not exist yet says so.
+    fn folder_choice(&self, folder: &str) -> String {
+        let new = !folder.is_empty() && !self.folders().iter().any(|f| f.name == folder);
+        if new {
+            self.t.new_folder_suffix(folder)
+        } else {
+            self.folder_name(folder)
         }
     }
 
@@ -495,6 +519,8 @@ impl App {
                 self.t.note_details()
             };
             if ui.button(file).clicked() {
+                self.proposing = None;
+                self.proposed_by = None;
                 self.dialog = Some(Dialog::File {
                     id: note.id.clone(),
                     title: if note.unfiled() {
@@ -700,6 +726,43 @@ impl App {
                 tags,
                 folder,
             } => {
+                if id.starts_with(&format!("{INBOX}/")) {
+                    let done = self.proposing.as_ref().and_then(Job::take);
+                    match done {
+                        Some(Ok(proposal)) => {
+                            *title = proposal.title;
+                            *tags = proposal.tags.join(", ");
+                            *folder = proposal.folder;
+                            self.proposed_by = Some(proposal.model);
+                            self.proposing = None;
+                            self.error = None;
+                        }
+                        Some(Err(e)) => {
+                            self.error = Some(error_text(&self.t, &e));
+                            self.proposing = None;
+                        }
+                        None => {}
+                    }
+                    ui.horizontal(|ui| {
+                        let waiting = self.proposing.is_some();
+                        if ui
+                            .add_enabled(!waiting, egui::Button::new(self.t.propose()))
+                            .clicked()
+                            && let Some(request) = self.act(|core| core.proposal_request(id))
+                        {
+                            self.proposed_by = None;
+                            self.proposing = Some(Job::start(self.beside, move || request.send()));
+                        }
+                        if waiting {
+                            ui.spinner();
+                            ui.weak(self.t.model_working());
+                            ui.ctx().request_repaint_after(Duration::from_millis(200));
+                        }
+                    });
+                    if let Some(model) = &self.proposed_by {
+                        ui.weak(self.t.proposal_by(model));
+                    }
+                }
                 egui::Grid::new("file").num_columns(2).show(ui, |ui| {
                     let label = ui.label(self.t.title_label());
                     ui.add(egui::TextEdit::singleline(title).desired_width(360.0))
@@ -715,7 +778,7 @@ impl App {
                     ui.end_row();
                     let label = ui.label(self.t.folder_label());
                     egui::ComboBox::from_id_salt("file_folder")
-                        .selected_text(self.folder_name(folder))
+                        .selected_text(self.folder_choice(folder))
                         .show_ui(ui, |ui| {
                             // A Note is filed out of the Inbox, so the
                             // Inbox is no choice.
@@ -726,8 +789,13 @@ impl App {
                                     .map(|f| f.name)
                                     .filter(|n| n != INBOX),
                             );
+                            // A Folder a Proposal suggests is a choice
+                            // too, before it exists.
+                            if !names.contains(folder) {
+                                names.push(folder.clone());
+                            }
                             for name in names {
-                                let shown = self.folder_name(&name);
+                                let shown = self.folder_choice(&name);
                                 ui.selectable_value(folder, name, shown);
                             }
                         })
@@ -964,6 +1032,8 @@ pub(crate) fn error_text(t: &L10n, error: &Error) -> String {
         Error::NotFound(what) => t.error_not_found(what),
         Error::Invalid(reason) => t.error_not_possible(reason),
         Error::Model(reason) => t.error_model(reason),
+        Error::NoModel => t.error_no_model().to_string(),
+        Error::Private => t.error_private().to_string(),
         other => t.error_other(&other.to_string()),
     }
 }

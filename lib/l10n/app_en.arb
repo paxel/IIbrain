@@ -365,5 +365,39 @@
         "type": "String"
       }
     }
+  },
+  "propose": "Propose",
+  "@propose": {
+    "description": "Button in the filing dialog that asks the Model for a Proposal."
+  },
+  "modelWorking": "The Model is working…",
+  "@modelWorking": {
+    "description": "While the app waits for a Model's answer."
+  },
+  "proposalBy": "Proposal by {model}. Correct it or save it as it is.",
+  "@proposalBy": {
+    "description": "Over the filing fields once a Proposal filled them.",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "errorNoModel": "No Model is connected. Connect one under Models…, or do this by hand.",
+  "@errorNoModel": {
+    "description": "A Proposal or an Answer was asked for while no Model is connected."
+  },
+  "errorPrivate": "This is Private and your Model is a Cloud Model, so nothing was sent. Choose a Local Model, or lift the Private mark.",
+  "@errorPrivate": {
+    "description": "The privacy gate refused to send something Private to a Cloud Model."
+  },
+  "newFolderSuffix": "{name} (new Folder)",
+  "@newFolderSuffix": {
+    "description": "A Folder a Proposal suggests that does not exist yet, in the Folder choice.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

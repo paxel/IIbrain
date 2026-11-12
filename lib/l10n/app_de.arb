@@ -78,5 +78,11 @@
   "folderMarkPrivate": "Als privat markieren",
   "folderLiftPrivate": "Privat-Markierung aufheben",
   "unfiledPrivateSetting": "Nicht abgelegte Notizen gelten als privat",
-  "privateSuffix": "{name} · privat"
+  "privateSuffix": "{name} · privat",
+  "propose": "Vorschlagen",
+  "modelWorking": "Das Modell arbeitet…",
+  "proposalBy": "Vorschlag von {model}. Korrigiere ihn oder speichere ihn so.",
+  "errorNoModel": "Kein Modell ist verbunden. Verbinde eines unter Modelle…, oder mach es von Hand.",
+  "errorPrivate": "Das ist privat und dein Modell ist ein Cloud-Modell, also wurde nichts gesendet. Wähle ein lokales Modell oder hebe die Privat-Markierung auf.",
+  "newFolderSuffix": "{name} (neuer Ordner)"
 }
