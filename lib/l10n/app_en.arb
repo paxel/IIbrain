@@ -524,5 +524,76 @@
   "keepMerged": "Keep the merged text",
   "@keepMerged": {
     "description": "Button that ends a Conflict with the merged text."
+  },
+  "allowFilesTitle": "IIbrain needs access to your files",
+  "@allowFilesTitle": {
+    "description": "Heading on the phone before all-files access is granted."
+  },
+  "allowFilesBody": "Your Brain is a folder in the phone's storage that your sync tool also writes to. To read and write it, IIbrain needs the permission to manage all files. It uses it for that folder only.",
+  "@allowFilesBody": {
+    "description": "Explains on the phone why all-files access is asked for."
+  },
+  "allowFilesButton": "Open the permission",
+  "@allowFilesButton": {
+    "description": "Button on the phone that opens the system's page for all-files access."
+  },
+  "useThisFolder": "Use this folder",
+  "@useThisFolder": {
+    "description": "Button in the phone's folder browser that makes the shown folder the Brain."
+  },
+  "folderUp": "Up",
+  "@folderUp": {
+    "description": "Goes to the parent folder in the phone's folder browser."
+  },
+  "noFoldersHere": "No folders in here.",
+  "@noFoldersHere": {
+    "description": "In the phone's folder browser for a folder without sub-folders."
+  },
+  "tabBrain": "Brain",
+  "@tabBrain": {
+    "description": "The phone's tab with the Folders and Notes."
+  },
+  "tabSearch": "Search",
+  "@tabSearch": {
+    "description": "The phone's search tab."
+  },
+  "tabSettings": "Settings",
+  "@tabSettings": {
+    "description": "The phone's settings tab."
+  },
+  "searchHint": "Type words to search your Brain.",
+  "@searchHint": {
+    "description": "On the phone's search tab while the field is empty."
+  },
+  "brainFolder": "The Brain's folder",
+  "@brainFolder": {
+    "description": "Label of the setting that shows where the Brain lies."
+  },
+  "notesCount": "{count, plural, =0{No Notes} =1{1 Note} other{{count} Notes}}",
+  "@notesCount": {
+    "description": "Under a Folder's name in the phone's list.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "version": "Version {version}",
+  "@version": {
+    "description": "The app's version in the settings.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "errorIndex": "The app's index could not be read or written: {reason}",
+  "@errorIndex": {
+    "description": "The index database on the Device failed.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
   }
 }

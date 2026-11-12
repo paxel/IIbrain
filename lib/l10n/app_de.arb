@@ -104,5 +104,19 @@
   "versionOf": "Fassung {number}",
   "keepVersion": "Fassung {number} behalten",
   "mergedText": "Zusammengeführter Text",
-  "keepMerged": "Zusammengeführten Text behalten"
+  "keepMerged": "Zusammengeführten Text behalten",
+  "allowFilesTitle": "IIbrain braucht Zugriff auf deine Dateien",
+  "allowFilesBody": "Dein Brain ist ein Ordner im Speicher des Telefons, in den auch dein Sync-Werkzeug schreibt. Um ihn zu lesen und zu schreiben, braucht IIbrain die Erlaubnis, alle Dateien zu verwalten. Es nutzt sie nur für diesen Ordner.",
+  "allowFilesButton": "Erlaubnis öffnen",
+  "useThisFolder": "Diesen Ordner verwenden",
+  "folderUp": "Nach oben",
+  "noFoldersHere": "Hier sind keine Ordner.",
+  "tabBrain": "Brain",
+  "tabSearch": "Suche",
+  "tabSettings": "Einstellungen",
+  "searchHint": "Tippe Wörter, um dein Brain zu durchsuchen.",
+  "brainFolder": "Ordner des Brains",
+  "notesCount": "{count, plural, =0{Keine Notizen} =1{1 Notiz} other{{count} Notizen}}",
+  "version": "Version {version}",
+  "errorIndex": "Der Index der App ließ sich nicht lesen oder schreiben: {reason}"
 }

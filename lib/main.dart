@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'src/app.dart';
+import 'src/core/ffi_calls.dart';
+import 'src/phone.dart';
+
 void main() {
-  runApp(const IIbrainApp());
-}
-
-/// The phone app. An empty shell so far.
-class IIbrainApp extends StatelessWidget {
-  const IIbrainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(title: 'IIbrain', home: Scaffold());
-  }
+  runApp(const IIbrainApp(calls: FfiCalls(), phone: AndroidPhone()));
 }
