@@ -8,6 +8,7 @@ pub mod error;
 pub mod extract;
 pub mod index;
 pub mod model;
+pub mod privacy;
 pub mod web;
 
 pub use crate::brain::{Attachment, Brain, Capture, Folder, INBOX, Note};

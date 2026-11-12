@@ -328,5 +328,42 @@
         "type": "String"
       }
     }
+  },
+  "privateMark": "Private",
+  "@privateMark": {
+    "description": "The mark on a Note or Folder that keeps it from Cloud Models; also the checkbox that sets a Note's own mark."
+  },
+  "privateExplain": "What is Private reaches only a Local Model, never a Cloud Model.",
+  "@privateExplain": {
+    "description": "Explains the Private mark where it is set."
+  },
+  "privateByFolder": "Private because its Folder is.",
+  "@privateByFolder": {
+    "description": "Under a Note that is Private through its Folder's mark."
+  },
+  "privateUnfiled": "Private as long as it is Unfiled.",
+  "@privateUnfiled": {
+    "description": "Under an Unfiled Note while Unfiled Notes count as Private."
+  },
+  "folderMarkPrivate": "Mark Private",
+  "@folderMarkPrivate": {
+    "description": "Button that sets the Private mark of the chosen Folder."
+  },
+  "folderLiftPrivate": "Lift Private mark",
+  "@folderLiftPrivate": {
+    "description": "Button that lifts the Private mark of the chosen Folder."
+  },
+  "unfiledPrivateSetting": "Unfiled Notes count as Private",
+  "@unfiledPrivateSetting": {
+    "description": "Checkbox over the Inbox: whether fresh Captures are Private until filed."
+  },
+  "privateSuffix": "{name} · Private",
+  "@privateSuffix": {
+    "description": "A Folder's or Note's name in a list when it is Private.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

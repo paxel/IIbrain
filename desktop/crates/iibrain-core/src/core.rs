@@ -156,6 +156,44 @@ impl Core {
         self.device.save()
     }
 
+    // ------------------------------------------------------- privacy
+
+    /// Whether `note` is Private: by its own mark, by its Folder's, or
+    /// as an Unfiled Note while those count as Private.
+    pub fn is_private(&self, note: &Note) -> bool {
+        self.brain.is_private(note)
+    }
+
+    /// Whether `note` may be sent to `model`: the gate every send to a
+    /// Model passes.
+    pub fn may_send(&self, note: &Note, model: &Model) -> bool {
+        crate::privacy::may_send(self.is_private(note), model)
+    }
+
+    /// Sets or lifts a Note's own Private mark.
+    pub fn set_private(&mut self, id: &str, private: bool) -> Result<()> {
+        self.brain.set_private(id, private)?;
+        self.refresh()?;
+        Ok(())
+    }
+
+    /// Sets or lifts the Private mark of a Folder.
+    pub fn set_folder_private(&mut self, folder: &str, private: bool) -> Result<()> {
+        if folder.is_empty() {
+            return Err(Error::Invalid("the Brain's root is no Folder".to_string()));
+        }
+        self.brain.set_folder_private(folder, private)
+    }
+
+    /// Whether Unfiled Notes count as Private.
+    pub fn unfiled_private(&self) -> bool {
+        self.brain.unfiled_private()
+    }
+
+    pub fn set_unfiled_private(&mut self, private: bool) -> Result<()> {
+        self.brain.set_unfiled_private(private)
+    }
+
     // ------------------------------------------------------- writing
 
     /// Keeps a Capture as an Unfiled Note and says its id.

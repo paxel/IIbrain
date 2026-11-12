@@ -343,6 +343,19 @@ impl App {
                             name: self.folder.clone(),
                         });
                     }
+                    let private = self
+                        .core
+                        .as_ref()
+                        .is_some_and(|core| core.brain().folder_private(&self.folder));
+                    let toggle = if private {
+                        self.t.folder_lift_private()
+                    } else {
+                        self.t.folder_mark_private()
+                    };
+                    if ui.button(toggle).clicked() {
+                        let folder = self.folder.clone();
+                        self.act(|core| core.set_folder_private(&folder, !private));
+                    }
                     if ui.button(self.t.remove_folder()).clicked() {
                         let folder = self.folder.clone();
                         if self.act(|core| core.remove_folder(&folder)).is_some() {
@@ -357,13 +370,20 @@ impl App {
             .id_salt("folders")
             .auto_shrink(false)
             .show(ui, |ui| {
-                let mut rows: Vec<(String, usize)> =
-                    folders.into_iter().map(|f| (f.name, f.notes)).collect();
+                let mut rows: Vec<(String, usize, bool)> = folders
+                    .into_iter()
+                    .map(|f| (f.name, f.notes, f.private))
+                    .collect();
                 if at_root > 0 {
-                    rows.push((String::new(), at_root));
+                    rows.push((String::new(), at_root, false));
                 }
-                for (name, notes) in rows {
+                for (name, notes, private) in rows {
                     let label = format!("{} ({notes})", self.folder_name(&name));
+                    let label = if private {
+                        self.t.private_suffix(&label)
+                    } else {
+                        label
+                    };
                     let chosen = self.folder == name;
                     if ui.add(egui::Button::selectable(chosen, label)).clicked() {
                         self.folder = name;
@@ -416,6 +436,16 @@ impl App {
         if self.folder == INBOX {
             let count = i64::try_from(notes.len()).unwrap_or(i64::MAX);
             ui.weak(self.t.unfiled_waiting(count));
+            let mut private = self
+                .core
+                .as_ref()
+                .is_some_and(|core| core.unfiled_private());
+            if ui
+                .checkbox(&mut private, self.t.unfiled_private_setting())
+                .changed()
+            {
+                self.act(|core| core.set_unfiled_private(private));
+            }
         } else if notes.is_empty() {
             ui.weak(self.t.no_notes_here());
         }
@@ -425,10 +455,16 @@ impl App {
             .show(ui, |ui| {
                 for note in notes {
                     let chosen = self.open.as_deref() == Some(note.id.as_str());
-                    if ui
-                        .add(egui::Button::selectable(chosen, list_title(&note)))
-                        .clicked()
-                    {
+                    let private = self
+                        .core
+                        .as_ref()
+                        .is_some_and(|core| core.is_private(&note));
+                    let title = if private {
+                        self.t.private_suffix(&list_title(&note))
+                    } else {
+                        list_title(&note)
+                    };
+                    if ui.add(egui::Button::selectable(chosen, title)).clicked() {
                         self.open = Some(note.id);
                     }
                 }
@@ -492,6 +528,28 @@ impl App {
                 }
                 if let Some(captured) = &note.captured {
                     ui.weak(self.t.captured_on(&when(captured)));
+                }
+                let mut private = note.private;
+                if ui
+                    .checkbox(&mut private, self.t.private_mark())
+                    .on_hover_text(self.t.private_explain())
+                    .changed()
+                {
+                    self.act(|core| core.set_private(&note.id, private));
+                }
+                let by_folder = self
+                    .core
+                    .as_ref()
+                    .is_some_and(|core| core.brain().folder_private(&note.folder));
+                let by_inbox = note.unfiled()
+                    && self
+                        .core
+                        .as_ref()
+                        .is_some_and(|core| core.unfiled_private());
+                if by_folder {
+                    ui.weak(self.t.private_by_folder());
+                } else if by_inbox && !note.private {
+                    ui.weak(self.t.private_unfiled());
                 }
                 ui.separator();
                 ui.add(egui::Label::new(note.text.as_str()).selectable(true));

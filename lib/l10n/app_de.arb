@@ -70,5 +70,13 @@
   "testAndAdd": "Testen und hinzufügen",
   "addUntested": "Ohne Test hinzufügen",
   "close": "Schließen",
-  "errorModel": "Das Modell hat nicht geantwortet: {reason}"
+  "errorModel": "Das Modell hat nicht geantwortet: {reason}",
+  "privateMark": "Privat",
+  "privateExplain": "Was privat ist, erreicht nur ein lokales Modell, nie ein Cloud-Modell.",
+  "privateByFolder": "Privat, weil der Ordner es ist.",
+  "privateUnfiled": "Privat, solange sie nicht abgelegt ist.",
+  "folderMarkPrivate": "Als privat markieren",
+  "folderLiftPrivate": "Privat-Markierung aufheben",
+  "unfiledPrivateSetting": "Nicht abgelegte Notizen gelten als privat",
+  "privateSuffix": "{name} · privat"
 }
