@@ -1,28 +1,60 @@
 //! The window: the Folders on the left, the Notes of the chosen Folder
-//! beside them, and the opened Note.
+//! beside them, the opened Note, and the dialogs over them.
 
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use egui::{RichText, Ui};
-use iibrain_core::{Core, Device, Folder, INBOX, Note};
+use iibrain_core::{Capture, Core, Device, Error, Folder, INBOX, Note};
 
 use crate::l10n::L10n;
 
 /// Asks the person for a folder; `None` when they cancel.
 pub type PickFolder = Box<dyn FnMut() -> Option<PathBuf>>;
 
+/// What lies over the window and waits for the person.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum Dialog {
+    /// A typed Capture.
+    Capture {
+        text: String,
+    },
+    /// A Note's text, being edited.
+    EditText {
+        id: String,
+        text: String,
+    },
+    /// Filing an Unfiled Note, or title, tags and Folder of a filed one.
+    File {
+        id: String,
+        title: String,
+        tags: String,
+        folder: String,
+    },
+    ConfirmDelete {
+        id: String,
+    },
+    NewFolder {
+        name: String,
+    },
+    RenameFolder {
+        from: String,
+        name: String,
+    },
+}
+
 pub struct App {
-    t: L10n,
+    pub(crate) t: L10n,
     device_dir: PathBuf,
-    core: Option<Core>,
+    pub(crate) core: Option<Core>,
     /// What went wrong last, in the person's language, until the next
     /// action.
-    error: Option<String>,
+    pub(crate) error: Option<String>,
     /// The Folder whose Notes are listed.
-    folder: String,
+    pub(crate) folder: String,
     /// The Note that is open.
-    open: Option<String>,
+    pub(crate) open: Option<String>,
+    pub(crate) dialog: Option<Dialog>,
     refreshed: Instant,
     pick_folder: PickFolder,
 }
@@ -42,6 +74,7 @@ impl App {
             error: None,
             folder: INBOX.to_string(),
             open: None,
+            dialog: None,
             refreshed: Instant::now(),
             pick_folder: Box::new(|| rfd::FileDialog::new().pick_folder()),
         }
@@ -61,6 +94,21 @@ impl App {
         self.core.as_ref()
     }
 
+    /// The id of the Note that is open.
+    pub fn open_note(&self) -> Option<&str> {
+        self.open.as_deref()
+    }
+
+    /// Confirms the dialog that asks before a Note is deleted, as its
+    /// Delete button does.
+    pub fn confirm_delete(&mut self) {
+        if let Some(Dialog::ConfirmDelete { id }) = self.dialog.take()
+            && self.act(|core| core.delete(&id)).is_some()
+        {
+            self.open = None;
+        }
+    }
+
     /// Makes `folder` the Brain.
     pub fn choose_brain(&mut self, folder: &Path) {
         match Core::open_folder(&self.device_dir, folder) {
@@ -69,6 +117,7 @@ impl App {
                 self.error = None;
                 self.folder = INBOX.to_string();
                 self.open = None;
+                self.dialog = None;
             }
             Err(e) => self.error = Some(self.t.folder_not_opened(&e.to_string())),
         }
@@ -80,7 +129,7 @@ impl App {
         if let Some(core) = &mut self.core
             && let Err(e) = core.refresh()
         {
-            self.error = Some(e.to_string());
+            self.error = Some(error_text(&self.t, &e));
         }
     }
 
@@ -88,6 +137,25 @@ impl App {
     pub fn refresh_if_due(&mut self, every: Duration) {
         if self.refreshed.elapsed() >= every {
             self.refresh();
+        }
+    }
+
+    /// Does `action` on the core and says what it gave; a failure is
+    /// shown in the person's language.
+    pub(crate) fn act<T>(
+        &mut self,
+        action: impl FnOnce(&mut Core) -> iibrain_core::Result<T>,
+    ) -> Option<T> {
+        let core = self.core.as_mut()?;
+        match action(core) {
+            Ok(value) => {
+                self.error = None;
+                Some(value)
+            }
+            Err(e) => {
+                self.error = Some(error_text(&self.t, &e));
+                None
+            }
         }
     }
 
@@ -99,13 +167,14 @@ impl App {
         egui::Panel::top("bar").show(ui, |ui| self.show_bar(ui));
         egui::Panel::left("folders")
             .resizable(true)
-            .default_size(200.0)
+            .default_size(220.0)
             .show(ui, |ui| self.show_folders(ui));
         egui::Panel::left("notes")
             .resizable(true)
             .default_size(300.0)
             .show(ui, |ui| self.show_notes(ui));
         egui::CentralPanel::default().show(ui, |ui| self.show_note(ui));
+        self.show_dialog(ui);
     }
 
     fn pick_brain(&mut self) {
@@ -133,13 +202,18 @@ impl App {
 
     fn show_error(&self, ui: &mut Ui) {
         if let Some(error) = &self.error {
-            ui.add_space(8.0);
             ui.colored_label(ui.visuals().error_fg_color, error);
         }
     }
 
     fn show_bar(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
+            if ui.button(self.t.new_note()).clicked() {
+                self.dialog = Some(Dialog::Capture {
+                    text: String::new(),
+                });
+            }
+            ui.separator();
             let root = self
                 .core
                 .as_ref()
@@ -154,7 +228,7 @@ impl App {
     }
 
     /// A Folder's name as the person reads it.
-    fn folder_name(&self, folder: &str) -> String {
+    pub(crate) fn folder_name(&self, folder: &str) -> String {
         match folder {
             "" => self.t.brain_root().to_string(),
             INBOX => self.t.inbox().to_string(),
@@ -162,19 +236,47 @@ impl App {
         }
     }
 
-    fn show_folders(&mut self, ui: &mut Ui) {
-        ui.strong(self.t.folders());
-        let folders: Vec<Folder> = self
-            .core
+    pub(crate) fn folders(&self) -> Vec<Folder> {
+        self.core
             .as_ref()
             .and_then(|core| core.folders().ok())
-            .unwrap_or_default();
+            .unwrap_or_default()
+    }
+
+    fn show_folders(&mut self, ui: &mut Ui) {
+        ui.strong(self.t.folders());
+        let folders = self.folders();
         let at_root = self
             .core
             .as_ref()
             .and_then(|core| core.notes("").ok())
             .map(|notes| notes.len())
             .unwrap_or(0);
+        egui::Panel::bottom("folder_actions").show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                if ui.button(self.t.new_folder()).clicked() {
+                    self.dialog = Some(Dialog::NewFolder {
+                        name: String::new(),
+                    });
+                }
+                // The Inbox is fixed, and the Brain's root is no Folder.
+                if self.folder != INBOX && !self.folder.is_empty() {
+                    if ui.button(self.t.rename_folder()).clicked() {
+                        self.dialog = Some(Dialog::RenameFolder {
+                            from: self.folder.clone(),
+                            name: self.folder.clone(),
+                        });
+                    }
+                    if ui.button(self.t.remove_folder()).clicked() {
+                        let folder = self.folder.clone();
+                        if self.act(|core| core.remove_folder(&folder)).is_some() {
+                            self.folder = INBOX.to_string();
+                            self.open = None;
+                        }
+                    }
+                }
+            });
+        });
         egui::ScrollArea::vertical()
             .id_salt("folders")
             .auto_shrink(false)
@@ -202,9 +304,11 @@ impl App {
             .as_ref()
             .and_then(|core| core.notes(&self.folder).ok())
             .unwrap_or_default();
-        if notes.is_empty() {
+        if self.folder == INBOX {
+            let count = i64::try_from(notes.len()).unwrap_or(i64::MAX);
+            ui.weak(self.t.unfiled_waiting(count));
+        } else if notes.is_empty() {
             ui.weak(self.t.no_notes_here());
-            return;
         }
         egui::ScrollArea::vertical()
             .id_salt("notes")
@@ -213,7 +317,7 @@ impl App {
                 for note in notes {
                     let chosen = self.open.as_deref() == Some(note.id.as_str());
                     if ui
-                        .add(egui::Button::selectable(chosen, note.title.as_str()))
+                        .add(egui::Button::selectable(chosen, list_title(&note)))
                         .clicked()
                     {
                         self.open = Some(note.id);
@@ -233,6 +337,41 @@ impl App {
             ui.weak(self.t.choose_note());
             return;
         };
+        ui.horizontal_wrapped(|ui| {
+            if ui.button(self.t.edit()).clicked() {
+                self.dialog = Some(Dialog::EditText {
+                    id: note.id.clone(),
+                    text: note.text.clone(),
+                });
+            }
+            let file = if note.unfiled() {
+                self.t.file_note()
+            } else {
+                self.t.note_details()
+            };
+            if ui.button(file).clicked() {
+                self.dialog = Some(Dialog::File {
+                    id: note.id.clone(),
+                    title: if note.unfiled() {
+                        String::new()
+                    } else {
+                        note.title.clone()
+                    },
+                    tags: note.tags.join(", "),
+                    folder: if note.unfiled() {
+                        String::new()
+                    } else {
+                        note.folder.clone()
+                    },
+                });
+            }
+            if ui.button(self.t.delete()).clicked() {
+                self.dialog = Some(Dialog::ConfirmDelete {
+                    id: note.id.clone(),
+                });
+            }
+        });
+        ui.separator();
         egui::ScrollArea::vertical()
             .id_salt("note")
             .auto_shrink(false)
@@ -262,6 +401,234 @@ impl App {
                 }
             });
     }
+
+    // ------------------------------------------------------- dialogs
+
+    fn show_dialog(&mut self, ui: &mut Ui) {
+        let Some(mut dialog) = self.dialog.take() else {
+            return;
+        };
+        let title = match &dialog {
+            Dialog::Capture { .. } => self.t.new_note(),
+            Dialog::EditText { .. } => self.t.edit(),
+            Dialog::File { id, .. } if id.starts_with(&format!("{INBOX}/")) => {
+                self.t.file_note_title()
+            }
+            Dialog::File { .. } => self.t.note_details_title(),
+            Dialog::ConfirmDelete { .. } => self.t.delete(),
+            Dialog::NewFolder { .. } => self.t.new_folder_title(),
+            Dialog::RenameFolder { .. } => self.t.rename_folder_title(),
+        };
+        let mut keep = true;
+        egui::Window::new(title)
+            .collapsible(false)
+            .resizable(false)
+            .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
+            .show(ui.ctx(), |ui| {
+                keep = self.dialog_body(ui, &mut dialog);
+                self.show_error(ui);
+            });
+        // A dialog that opened another one keeps that one.
+        if keep && self.dialog.is_none() {
+            self.dialog = Some(dialog);
+        }
+    }
+
+    /// Draws `dialog` and says whether it stays open.
+    fn dialog_body(&mut self, ui: &mut Ui, dialog: &mut Dialog) -> bool {
+        match dialog {
+            Dialog::Capture { text } => {
+                let label = ui.label(self.t.note_text());
+                ui.add(
+                    egui::TextEdit::multiline(text)
+                        .desired_rows(8)
+                        .desired_width(480.0),
+                )
+                .labelled_by(label.id);
+                ui.weak(self.t.phone_only());
+                match self.confirm_row(ui, self.t.save(), !text.trim().is_empty()) {
+                    Some(true) => {
+                        let capture = Capture {
+                            text: text.clone(),
+                            via: "typed".to_string(),
+                            ..Capture::default()
+                        };
+                        match self.act(|core| core.capture(&capture)) {
+                            Some(id) => {
+                                self.folder = INBOX.to_string();
+                                self.open = Some(id);
+                                false
+                            }
+                            None => true,
+                        }
+                    }
+                    Some(false) => false,
+                    None => true,
+                }
+            }
+            Dialog::EditText { id, text } => {
+                let label = ui.label(self.t.note_text());
+                ui.add(
+                    egui::TextEdit::multiline(text)
+                        .desired_rows(16)
+                        .desired_width(560.0),
+                )
+                .labelled_by(label.id);
+                match self.confirm_row(ui, self.t.save(), true) {
+                    Some(true) => self.act(|core| core.set_text(id, text)).is_none(),
+                    Some(false) => false,
+                    None => true,
+                }
+            }
+            Dialog::File {
+                id,
+                title,
+                tags,
+                folder,
+            } => {
+                egui::Grid::new("file").num_columns(2).show(ui, |ui| {
+                    let label = ui.label(self.t.title_label());
+                    ui.add(egui::TextEdit::singleline(title).desired_width(360.0))
+                        .labelled_by(label.id);
+                    ui.end_row();
+                    let label = ui.label(self.t.tags_label());
+                    ui.add(
+                        egui::TextEdit::singleline(tags)
+                            .hint_text(self.t.tags_hint())
+                            .desired_width(360.0),
+                    )
+                    .labelled_by(label.id);
+                    ui.end_row();
+                    let label = ui.label(self.t.folder_label());
+                    egui::ComboBox::from_id_salt("file_folder")
+                        .selected_text(self.folder_name(folder))
+                        .show_ui(ui, |ui| {
+                            // A Note is filed out of the Inbox, so the
+                            // Inbox is no choice.
+                            let mut names = vec![String::new()];
+                            names.extend(
+                                self.folders()
+                                    .into_iter()
+                                    .map(|f| f.name)
+                                    .filter(|n| n != INBOX),
+                            );
+                            for name in names {
+                                let shown = self.folder_name(&name);
+                                ui.selectable_value(folder, name, shown);
+                            }
+                        })
+                        .response
+                        .labelled_by(label.id);
+                    ui.end_row();
+                });
+                match self.confirm_row(ui, self.t.save(), !title.trim().is_empty()) {
+                    Some(true) => {
+                        let tags: Vec<String> = tags
+                            .split(',')
+                            .map(|t| t.trim().to_string())
+                            .filter(|t| !t.is_empty())
+                            .collect();
+                        match self.act(|core| core.file(id, title, &tags, folder)) {
+                            Some(new_id) => {
+                                self.folder = folder.clone();
+                                self.open = Some(new_id);
+                                false
+                            }
+                            None => true,
+                        }
+                    }
+                    Some(false) => false,
+                    None => true,
+                }
+            }
+            Dialog::ConfirmDelete { id } => {
+                ui.label(self.t.delete_note_question());
+                match self.confirm_row(ui, self.t.delete(), true) {
+                    Some(true) => {
+                        if self.act(|core| core.delete(id)).is_some() {
+                            self.open = None;
+                        }
+                        false
+                    }
+                    Some(false) => false,
+                    None => true,
+                }
+            }
+            Dialog::NewFolder { name } => {
+                let label = ui.label(self.t.folder_name());
+                ui.add(egui::TextEdit::singleline(name).desired_width(320.0))
+                    .labelled_by(label.id);
+                match self.confirm_row(ui, self.t.create(), !name.trim().is_empty()) {
+                    Some(true) => {
+                        let wanted = name.trim().to_string();
+                        match self.act(|core| core.create_folder(&wanted)) {
+                            Some(()) => {
+                                self.folder = wanted;
+                                self.open = None;
+                                false
+                            }
+                            None => true,
+                        }
+                    }
+                    Some(false) => false,
+                    None => true,
+                }
+            }
+            Dialog::RenameFolder { from, name } => {
+                let label = ui.label(self.t.folder_name());
+                ui.add(egui::TextEdit::singleline(name).desired_width(320.0))
+                    .labelled_by(label.id);
+                match self.confirm_row(ui, self.t.rename(), !name.trim().is_empty()) {
+                    Some(true) => {
+                        let wanted = name.trim().to_string();
+                        match self.act(|core| core.rename_folder(from, &wanted)) {
+                            Some(()) => {
+                                self.folder = wanted;
+                                self.open = None;
+                                false
+                            }
+                            None => true,
+                        }
+                    }
+                    Some(false) => false,
+                    None => true,
+                }
+            }
+        }
+    }
+
+    /// The buttons at the foot of a dialog: `Some(true)` when the
+    /// person confirmed, `Some(false)` when they cancelled.
+    pub(crate) fn confirm_row(&self, ui: &mut Ui, confirm: &str, enabled: bool) -> Option<bool> {
+        let mut answer = None;
+        ui.add_space(8.0);
+        ui.horizontal(|ui| {
+            if ui
+                .add_enabled(enabled, egui::Button::new(confirm))
+                .clicked()
+            {
+                answer = Some(true);
+            }
+            if ui.button(self.t.cancel()).clicked() {
+                answer = Some(false);
+            }
+        });
+        answer
+    }
+}
+
+/// What a Note is listed as: its title, or for an Unfiled Note without
+/// one the start of its text.
+fn list_title(note: &Note) -> String {
+    let unnamed = note.unfiled() && note.id.ends_with(&format!("/{}.md", note.title));
+    if !unnamed {
+        return note.title.clone();
+    }
+    let first = note.text.lines().find(|l| !l.trim().is_empty());
+    match first {
+        Some(line) => line.trim().chars().take(60).collect(),
+        None => note.title.clone(),
+    }
 }
 
 /// A capture time as the person reads it: the day and the minute,
@@ -269,4 +636,14 @@ impl App {
 fn when(captured: &str) -> String {
     let short: String = captured.chars().take(16).collect();
     short.replace('T', " ")
+}
+
+/// An error of the core in the person's language.
+pub(crate) fn error_text(t: &L10n, error: &Error) -> String {
+    match error {
+        Error::Io(e) => t.error_file(&e.to_string()),
+        Error::NotFound(what) => t.error_not_found(what),
+        Error::Invalid(reason) => t.error_not_possible(reason),
+        other => t.error_other(&other.to_string()),
+    }
 }

@@ -14,7 +14,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use egui_kittest::Harness;
-use egui_kittest::kittest::Queryable;
+use egui_kittest::kittest::{NodeT, Queryable};
 use iibrain_gui::App;
 use tempfile::TempDir;
 
@@ -86,5 +86,31 @@ pub fn shows(harness: &Harness<'_, App>, label: &str) -> bool {
 /// settle.
 pub fn click(harness: &mut Harness<'_, App>, label: &str) {
     harness.get_by_label(label).click();
+    harness.run();
+}
+
+/// Types `text` into the field labelled `label`, after what it holds.
+pub fn fill(harness: &mut Harness<'_, App>, label: &str, text: &str) {
+    let field = harness
+        .query_all_by_label(label)
+        .find(|node| {
+            matches!(
+                node.accesskit_node().role(),
+                egui::accesskit::Role::TextInput | egui::accesskit::Role::MultilineTextInput
+            )
+        })
+        .unwrap_or_else(|| panic!("no field labelled {label}"));
+    field.focus();
+    harness.run();
+    let field = harness
+        .query_all_by_label(label)
+        .find(|node| {
+            matches!(
+                node.accesskit_node().role(),
+                egui::accesskit::Role::TextInput | egui::accesskit::Role::MultilineTextInput
+            )
+        })
+        .unwrap_or_else(|| panic!("no field labelled {label}"));
+    field.type_text(text);
     harness.run();
 }

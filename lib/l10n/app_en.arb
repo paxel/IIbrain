@@ -1,31 +1,210 @@
 {
   "@@locale": "en",
   "appTitle": "IIbrain",
-  "@appTitle": {"description": "The app's name, never translated."},
+  "@appTitle": {
+    "description": "The app's name, never translated."
+  },
   "chooseBrainTitle": "Where is your Brain?",
-  "@chooseBrainTitle": {"description": "Heading of the first start, before a folder is chosen."},
+  "@chooseBrainTitle": {
+    "description": "Heading of the first start, before a folder is chosen."
+  },
   "chooseBrainBody": "Your Brain is a folder of Markdown files. Choose an existing folder or an empty one. IIbrain never syncs it; a sync tool of your choice can carry it between your devices.",
-  "@chooseBrainBody": {"description": "Explains the Brain's folder on the first start."},
+  "@chooseBrainBody": {
+    "description": "Explains the Brain's folder on the first start."
+  },
   "chooseFolder": "Choose folder…",
-  "@chooseFolder": {"description": "Button that opens the folder picker for the Brain."},
+  "@chooseFolder": {
+    "description": "Button that opens the folder picker for the Brain."
+  },
   "changeFolder": "Change folder…",
-  "@changeFolder": {"description": "Button that points the app at another folder as the Brain."},
+  "@changeFolder": {
+    "description": "Button that points the app at another folder as the Brain."
+  },
   "folderNotOpened": "This folder could not be opened: {reason}",
-  "@folderNotOpened": {"description": "Shown when the chosen folder cannot be used as the Brain.", "placeholders": {"reason": {"type": "String"}}},
+  "@folderNotOpened": {
+    "description": "Shown when the chosen folder cannot be used as the Brain.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "folders": "Folders",
-  "@folders": {"description": "Heading over the list of Folders."},
+  "@folders": {
+    "description": "Heading over the list of Folders."
+  },
   "inbox": "Inbox",
-  "@inbox": {"description": "The one fixed Folder, where Unfiled Notes wait."},
+  "@inbox": {
+    "description": "The one fixed Folder, where Unfiled Notes wait."
+  },
   "brainRoot": "Brain",
-  "@brainRoot": {"description": "Name shown for Notes lying directly in the Brain's folder, outside every Folder."},
+  "@brainRoot": {
+    "description": "Name shown for Notes lying directly in the Brain's folder, outside every Folder."
+  },
   "noNotesHere": "No Notes here.",
-  "@noNotesHere": {"description": "Shown for a Folder without Notes."},
+  "@noNotesHere": {
+    "description": "Shown for a Folder without Notes."
+  },
   "chooseNote": "Choose a Note to read it.",
-  "@chooseNote": {"description": "Shown where a Note opens, while none is open."},
+  "@chooseNote": {
+    "description": "Shown where a Note opens, while none is open."
+  },
   "attachments": "Attachments",
-  "@attachments": {"description": "Heading over a Note's Attachments."},
+  "@attachments": {
+    "description": "Heading over a Note's Attachments."
+  },
   "extractedText": "Extracted Text",
-  "@extractedText": {"description": "Heading over the text the app read out of an Attachment."},
+  "@extractedText": {
+    "description": "Heading over the text the app read out of an Attachment."
+  },
   "capturedOn": "Captured {when}",
-  "@capturedOn": {"description": "When a Note was captured, under its title.", "placeholders": {"when": {"type": "String"}}}
+  "@capturedOn": {
+    "description": "When a Note was captured, under its title.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "newNote": "New Note",
+  "@newNote": {
+    "description": "Button and dialog title for a typed Capture."
+  },
+  "noteText": "Text",
+  "@noteText": {
+    "description": "Label of the text field of a Note."
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Saves what a dialog holds."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Closes a dialog without saving."
+  },
+  "phoneOnly": "Print Capture, the camera and Live Lookups are found on the phone.",
+  "@phoneOnly": {
+    "description": "Hint in the desktop's capture dialog about what only the phone has."
+  },
+  "edit": "Edit",
+  "@edit": {
+    "description": "Button that opens a Note's text for editing."
+  },
+  "fileNote": "File…",
+  "@fileNote": {
+    "description": "Button that files an Unfiled Note by hand."
+  },
+  "fileNoteTitle": "File this Note",
+  "@fileNoteTitle": {
+    "description": "Title of the dialog that files an Unfiled Note."
+  },
+  "noteDetails": "Title, tags and Folder…",
+  "@noteDetails": {
+    "description": "Button that changes title, tags and Folder of a filed Note."
+  },
+  "noteDetailsTitle": "Title, tags and Folder",
+  "@noteDetailsTitle": {
+    "description": "Title of the dialog that changes a filed Note."
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Button that deletes a Note."
+  },
+  "deleteNoteQuestion": "Delete this Note with its Attachments?",
+  "@deleteNoteQuestion": {
+    "description": "Asks before a Note is deleted."
+  },
+  "titleLabel": "Title",
+  "@titleLabel": {
+    "description": "Label of a Note's title field."
+  },
+  "tagsLabel": "Tags",
+  "@tagsLabel": {
+    "description": "Label of a Note's tags field."
+  },
+  "tagsHint": "separated by commas",
+  "@tagsHint": {
+    "description": "Hint in the empty tags field."
+  },
+  "folderLabel": "Folder",
+  "@folderLabel": {
+    "description": "Label of the choice of a Note's Folder."
+  },
+  "newFolder": "New Folder…",
+  "@newFolder": {
+    "description": "Button that makes a Folder."
+  },
+  "newFolderTitle": "New Folder",
+  "@newFolderTitle": {
+    "description": "Title of the dialog that makes a Folder."
+  },
+  "renameFolder": "Rename…",
+  "@renameFolder": {
+    "description": "Button that renames the chosen Folder."
+  },
+  "renameFolderTitle": "Rename Folder",
+  "@renameFolderTitle": {
+    "description": "Title of the dialog that renames a Folder."
+  },
+  "removeFolder": "Remove",
+  "@removeFolder": {
+    "description": "Button that removes the chosen, empty Folder."
+  },
+  "folderName": "Name",
+  "@folderName": {
+    "description": "Label of a Folder's name field."
+  },
+  "create": "Create",
+  "@create": {
+    "description": "Confirms making a Folder."
+  },
+  "rename": "Rename",
+  "@rename": {
+    "description": "Confirms renaming a Folder."
+  },
+  "unfiledWaiting": "{count, plural, =0{Nothing waits Unfiled.} =1{1 Note waits Unfiled.} other{{count} Notes wait Unfiled.}}",
+  "@unfiledWaiting": {
+    "description": "Over the Inbox: how many Notes still wait to be filed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorNotPossible": "That is not possible: {reason}",
+  "@errorNotPossible": {
+    "description": "A request the app cannot follow, such as a name that is taken or a Folder that still holds Notes.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "errorNotFound": "Not found: {what}",
+  "@errorNotFound": {
+    "description": "A Note, Folder or file that is gone.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "errorFile": "A file could not be read or written: {reason}",
+  "@errorFile": {
+    "description": "Reading or writing the Brain's folder failed.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "errorOther": "Something went wrong: {reason}",
+  "@errorOther": {
+    "description": "Any other failure.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  }
 }

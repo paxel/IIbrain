@@ -3,7 +3,9 @@
 
 use std::path::Path;
 
-use crate::brain::{Brain, Folder, INBOX, Note};
+use chrono::Local;
+
+use crate::brain::{Brain, Capture, Folder, INBOX, Note};
 use crate::device::Device;
 use crate::error::{Error, Result};
 use crate::index::Index;
@@ -87,5 +89,54 @@ impl Core {
     /// How many Notes wait Unfiled.
     pub fn unfiled(&self) -> Result<usize> {
         Ok(self.notes(INBOX)?.len())
+    }
+
+    // ------------------------------------------------------- writing
+
+    /// Keeps a Capture as an Unfiled Note and says its id.
+    pub fn capture(&mut self, capture: &Capture) -> Result<String> {
+        let id = self.brain.capture(capture, Local::now())?;
+        self.refresh()?;
+        Ok(id)
+    }
+
+    /// Gives a Note its title, tags and Folder and says its id from
+    /// then on: Filing for an Unfiled Note; moving, retitling and
+    /// retagging for a filed one.
+    pub fn file(&mut self, id: &str, title: &str, tags: &[String], folder: &str) -> Result<String> {
+        let id = self.brain.file(id, title, tags, folder)?;
+        self.refresh()?;
+        Ok(id)
+    }
+
+    /// Replaces a Note's text.
+    pub fn set_text(&mut self, id: &str, text: &str) -> Result<()> {
+        self.brain.set_text(id, text)?;
+        self.refresh()?;
+        Ok(())
+    }
+
+    /// Removes a Note with its Attachments.
+    pub fn delete(&mut self, id: &str) -> Result<()> {
+        self.brain.delete(id)?;
+        self.refresh()?;
+        Ok(())
+    }
+
+    pub fn create_folder(&mut self, name: &str) -> Result<()> {
+        self.brain.create_folder(name)
+    }
+
+    /// Renames a Folder with everything in it; the Inbox keeps its
+    /// name.
+    pub fn rename_folder(&mut self, name: &str, new_name: &str) -> Result<()> {
+        self.brain.rename_folder(name, new_name)?;
+        self.refresh()?;
+        Ok(())
+    }
+
+    /// Removes a Folder that holds nothing; the Inbox stays.
+    pub fn remove_folder(&mut self, name: &str) -> Result<()> {
+        self.brain.remove_folder(name)
     }
 }
